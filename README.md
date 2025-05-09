@@ -21,7 +21,14 @@ Detailed documentation is available in the `docs` directory:
 
 ## Current Status
 
-This is version 1 of the Interface Redis Scheduler. The Redis Scheduler interface uses a versioned interface system, with the current stable version being 1. This allows for potential future changes while maintaining backward compatibility.
+This is the development version (`beta`) of the Interface Redis Scheduler. It is currently in pre-release stage and may undergo changes before the final release. The interface is not considered stable for production use without understanding that breaking changes may occur.
+
+## Versions
+
+| Version | Link                                                                                                             | Status                                        |
+| ------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| beta    | [redis_scheduler@beta](https://github.com/AntelopeJS/redis/tree/main/.antelope/output/redis_scheduler/beta.d.ts) | Waiting validation from community to go in v1 |
+| 1       | _Not yet released_                                                                                               | Planned stable release                        |
 
 ## License
 
