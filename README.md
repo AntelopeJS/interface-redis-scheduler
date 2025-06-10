@@ -3,7 +3,7 @@
 # Interface Redis Scheduler
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.md)
-[![Version](https://img.shields.io/badge/version-beta-orange.svg)](https://github.com/antelopejs/antelope)
+[![Version](https://img.shields.io/badge/version-beta-orange.svg)](https://github.com/AntelopeJS/redis/tree/main/.antelope/output/redis_scheduler/beta.d.ts)
 
 A robust task scheduling system built on top of Redis. Interface Redis Scheduler enables reliable, distributed scheduling of tasks across multiple application instances, with support for automatic retries and failure handling.
 
