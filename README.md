@@ -30,7 +30,7 @@ This is the development version (`beta`) of the Interface Redis Scheduler. It is
 
 | Version | Link                                                                                                             | Status                                        |
 | ------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| beta    | [redis_scheduler@beta](https://github.com/AntelopeJS/redis/tree/main/.antelope/output/redis_scheduler/beta.d.ts) | Waiting validation from community to go in v1 |
+| beta    | [redis_scheduler@beta](https://github.com/AntelopeJS/redis/tree/main/output/redis_scheduler/beta.d.ts) | Waiting validation from community to go in v1 |
 | 1       | _Not yet released_                                                                                               | Planned stable release                        |
 
 ## License
