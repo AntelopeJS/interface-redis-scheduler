@@ -1,0 +1,60 @@
+{
+  "name": "@antelopejs/interface-redis-scheduler",
+  "version": "0.0.1",
+  "description": "AntelopeJS interface for Redis-based task scheduling",
+  "keywords": [
+    "antelopejs",
+    "interface",
+    "redis",
+    "scheduler"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AntelopeJS/interface-redis-scheduler.git"
+  },
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.6.5",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "format": "biome format --write .",
+    "lint:fix": "biome check --write .",
+    "lint": "biome check .",
+    "prepack": "pnpm run build",
+    "release": "pnpm run lint && pnpm run prepack && release-it",
+    "test": "pnpm run build && ajs module test ."
+  },
+  "dependencies": {
+    "@antelopejs/interface-core": "^0.0.2",
+    "@antelopejs/interface-redis": "^0.0.2",
+    "ioredis": "^5.4.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.20",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.14.1",
+    "@biomejs/biome": "2.3.2",
+    "chai": "^4.5.0",
+    "release-it": "^19.0.2",
+    "release-it-changelogen": "^0.1.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "antelopeJs": {
+    "test": "src/antelope.test.ts"
+  }
+}
