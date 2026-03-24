@@ -6,9 +6,9 @@ export default defineConfig({
   modules: {
     redis: {
       source: {
-        type: "local",
-        path: "../redis",
-        installCommand: ["pnpm install", "npx tsc"],
+        type: "package",
+        package: "@antelopejs/redis",
+        version: "1.0.0",
       },
       config: { useMock: true },
     },
