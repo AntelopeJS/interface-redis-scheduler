@@ -36,7 +36,7 @@
     "test": "pnpm run build && ajs module test ."
   },
   "dependencies": {
-    "@antelopejs/interface-core": "^0.0.2",
+    "@antelopejs/interface-core": "^0.0.3",
     "@antelopejs/interface-redis": "^0.0.2",
     "ioredis": "^5.10.1"
   },

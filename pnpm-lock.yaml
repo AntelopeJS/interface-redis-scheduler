@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@antelopejs/interface-core':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       '@antelopejs/interface-redis':
         specifier: ^0.0.2
         version: 0.0.2
@@ -50,6 +50,9 @@ packages:
 
   '@antelopejs/interface-core@0.0.2':
     resolution: {integrity: sha512-CmtOJvSCRj20GOQhrE0PpHybGaW1G1lrepiKHVJa/bclhrvFYgHV0MH84TMpMOHESQT/+wuup007tfXAwaI+Eg==}
+
+  '@antelopejs/interface-core@0.0.3':
+    resolution: {integrity: sha512-Kw3ffGiQHKJ88AqdFfPuwzl+v0w6QqzqiqnLY7M0MYYw+YwdRNXh5WAJkep0ePudR9leLGXPU//FYizNaDG6yw==}
 
   '@antelopejs/interface-redis@0.0.2':
     resolution: {integrity: sha512-BT4wtDG/xVqCrExcJUnMjBJRJdF2+t4GqkYB8r6vxU49hlZYW3cg8JBt7WL2n04ggBFi6znQg/B2YlVcZR+yuA==}
@@ -511,6 +514,9 @@ packages:
 
   defu@6.1.4:
     resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
+
+  defu@6.1.7:
+    resolution: {integrity: sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ==}
 
   degenerator@5.0.1:
     resolution: {integrity: sha512-TllpMR/t0M5sqCXfj85i4XaAzxmS5tVA16dqvdkMwGmzI+dXLXnw3J+3Vdv7VKw+ThlTMboK6i9rnZ6Nntj5CQ==}
@@ -1188,6 +1194,10 @@ snapshots:
     dependencies:
       reflect-metadata: 0.2.2
 
+  '@antelopejs/interface-core@0.0.3':
+    dependencies:
+      reflect-metadata: 0.2.2
+
   '@antelopejs/interface-redis@0.0.2':
     dependencies:
       '@antelopejs/interface-core': 0.0.2
@@ -1491,7 +1501,7 @@ snapshots:
     dependencies:
       chokidar: 3.6.0
       confbox: 0.1.8
-      defu: 6.1.4
+      defu: 6.1.7
       dotenv: 16.6.1
       giget: 1.2.5
       jiti: 1.21.7
@@ -1633,6 +1643,8 @@ snapshots:
 
   defu@6.1.4: {}
 
+  defu@6.1.7: {}
+
   degenerator@5.0.1:
     dependencies:
       ast-types: 0.13.4
@@ -1714,7 +1726,7 @@ snapshots:
     dependencies:
       citty: 0.1.6
       consola: 3.4.2
-      defu: 6.1.4
+      defu: 6.1.7
       node-fetch-native: 1.6.7
       nypm: 0.5.4
       pathe: 2.0.3
