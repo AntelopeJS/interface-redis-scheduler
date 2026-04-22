@@ -12,8 +12,8 @@ importers:
         specifier: ^0.0.3
         version: 0.0.3
       '@antelopejs/interface-redis':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.5
+        version: 0.0.5
       ioredis:
         specifier: ^5.10.1
         version: 5.10.1
@@ -48,14 +48,11 @@ importers:
 
 packages:
 
-  '@antelopejs/interface-core@0.0.2':
-    resolution: {integrity: sha512-CmtOJvSCRj20GOQhrE0PpHybGaW1G1lrepiKHVJa/bclhrvFYgHV0MH84TMpMOHESQT/+wuup007tfXAwaI+Eg==}
-
   '@antelopejs/interface-core@0.0.3':
     resolution: {integrity: sha512-Kw3ffGiQHKJ88AqdFfPuwzl+v0w6QqzqiqnLY7M0MYYw+YwdRNXh5WAJkep0ePudR9leLGXPU//FYizNaDG6yw==}
 
-  '@antelopejs/interface-redis@0.0.2':
-    resolution: {integrity: sha512-BT4wtDG/xVqCrExcJUnMjBJRJdF2+t4GqkYB8r6vxU49hlZYW3cg8JBt7WL2n04ggBFi6znQg/B2YlVcZR+yuA==}
+  '@antelopejs/interface-redis@0.0.5':
+    resolution: {integrity: sha512-rXaKg9M/cJ1iwcsdHfNHl1M7wc7lumEAoHLn5RbGZFLohrfl6a3WfPDWeQqfhOwm9jyOL04seDbYAYMH9weViA==}
 
   '@biomejs/biome@2.3.2':
     resolution: {integrity: sha512-8e9tzamuDycx7fdrcJ/F/GDZ8SYukc5ud6tDicjjFqURKYFSWMl0H0iXNXZEGmcmNUmABgGuHThPykcM41INgg==}
@@ -1190,17 +1187,13 @@ packages:
 
 snapshots:
 
-  '@antelopejs/interface-core@0.0.2':
-    dependencies:
-      reflect-metadata: 0.2.2
-
   '@antelopejs/interface-core@0.0.3':
     dependencies:
       reflect-metadata: 0.2.2
 
-  '@antelopejs/interface-redis@0.0.2':
+  '@antelopejs/interface-redis@0.0.5':
     dependencies:
-      '@antelopejs/interface-core': 0.0.2
+      '@antelopejs/interface-core': 0.0.3
       ioredis: 5.10.1
     transitivePeerDependencies:
       - supports-color

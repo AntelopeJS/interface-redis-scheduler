@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@antelopejs/interface-core": "^0.0.3",
-    "@antelopejs/interface-redis": "^0.0.2",
+    "@antelopejs/interface-redis": "^0.0.5",
     "ioredis": "^5.10.1"
   },
   "devDependencies": {
