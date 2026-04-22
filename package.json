@@ -1,6 +1,6 @@
 {
   "name": "@antelopejs/interface-redis-scheduler",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "AntelopeJS interface for Redis-based task scheduling",
   "keywords": [
     "antelopejs",
