@@ -1,6 +1,35 @@
 # Changelog
 
 
+## v0.0.3
+
+[compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.2...v0.0.3)
+
+### 🩹 Fixes
+
+- Update @antelopejs/redis test dependency to 1.0.1 ([3d95c0f](https://github.com/AntelopeJS/interface-redis-scheduler/commit/3d95c0f))
+
+### 💅 Refactors
+
+- Switch test modules from local to npm packages ([429eba1](https://github.com/AntelopeJS/interface-redis-scheduler/commit/429eba1))
+
+### 📖 Documentation
+
+- Rewrite documentation for production readiness ([cc6534c](https://github.com/AntelopeJS/interface-redis-scheduler/commit/cc6534c))
+
+### 🏡 Chore
+
+- Update dependencies ([4b18c18](https://github.com/AntelopeJS/interface-redis-scheduler/commit/4b18c18))
+- Bump @antelopejs/interface-core to 0.0.3 ([#3](https://github.com/AntelopeJS/interface-redis-scheduler/pull/3))
+
+### 🤖 CI
+
+- Add test step to CI workflow ([800959f](https://github.com/AntelopeJS/interface-redis-scheduler/commit/800959f))
+
+### ❤️ Contributors
+
+- Antony Rizzitelli <upd4ting@gmail.com>
+
 ## v0.0.2
 
 
