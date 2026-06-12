@@ -1,4 +1,5 @@
 import { RegisteringProxy } from "@antelopejs/interface-core";
+import { Logging } from "@antelopejs/interface-core/logging";
 import { GetClient } from "@antelopejs/interface-redis";
 import type Redis from "ioredis";
 
@@ -255,7 +256,7 @@ export async function runTasks() {
           await handlers.get(m[2])?.(m[3]);
         }
       } catch (err) {
-        console.error(err);
+        Logging.Error(err);
         if (m) {
           const retryCount = m[1] ? parseInt(m[1], 10) : 0;
           if (retryCount < MaxRetries) {
