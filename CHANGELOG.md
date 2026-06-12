@@ -1,6 +1,23 @@
 # Changelog
 
 
+## v0.0.5
+
+[compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.4...v0.0.5)
+
+### 💅 Refactors
+
+- **logging:** Replace console calls with Logging interface ([71c0fe0](https://github.com/AntelopeJS/interface-redis-scheduler/commit/71c0fe0))
+
+### 📖 Documentation
+
+- Note removeTask throws on unregistered handler ([988bac9](https://github.com/AntelopeJS/interface-redis-scheduler/commit/988bac9))
+
+### ❤️ Contributors
+
+- Antony Rizzitelli <upd4ting@gmail.com>
+- Thomasims <thomasims3@hotmail.fr>
+
 ## v0.0.4
 
 [compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.3...v0.0.4)
