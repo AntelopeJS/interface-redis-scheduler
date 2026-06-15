@@ -8,16 +8,16 @@ importers:
 
   .:
     dependencies:
-      '@antelopejs/interface-core':
-        specifier: ^0.0.3
-        version: 0.0.3
-      '@antelopejs/interface-redis':
-        specifier: ^0.0.5
-        version: 0.0.5
       ioredis:
         specifier: ^5.10.1
         version: 5.10.1
     devDependencies:
+      '@antelopejs/interface-core':
+        specifier: '>=0.0.3 <1.0.0'
+        version: 0.0.3
+      '@antelopejs/interface-redis':
+        specifier: '>=0.0.5 <1.0.0'
+        version: 0.0.5
       '@biomejs/biome':
         specifier: 2.3.2
         version: 2.3.2
