@@ -45,9 +45,9 @@ import {
 } from "@antelopejs/interface-redis-scheduler";
 
 // 1. Register handlers first (name must not contain ':')
-setHandler("send-email", async (taskInfo) => {
+setHandler("overdue-notice", async (taskInfo) => {
   const data = JSON.parse(taskInfo);
-  await sendEmail(data.to, data.subject, data.body);
+  await notifyMember(data.memberId, data.bookTitle);
 });
 
 // 2. Start the execution loop (module start)
@@ -55,9 +55,9 @@ await enableListener();
 
 // 3. Schedule a task: dueTime is a Unix timestamp in milliseconds
 await addTask(
-  "send-email",
+  "overdue-notice",
   Date.now() + 60 * 60 * 1000,
-  JSON.stringify({ to: "a@b.c", subject: "Hi", body: "Hello" }),
+  JSON.stringify({ memberId: "M-1042", bookTitle: "The Heron's Atlas" }),
 );
 
 // 4. On shutdown
