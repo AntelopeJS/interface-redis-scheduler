@@ -1,7 +1,7 @@
-import { RegisteringProxy } from "@antelopejs/interface-core";
-import { Logging } from "@antelopejs/interface-core/logging";
-import { GetClient } from "@antelopejs/interface-redis";
 import type Redis from "ioredis";
+import { GetClient } from "@antelopejs/interface-redis";
+import { Logging } from "@antelopejs/interface-core/logging";
+import { RegisteringProxy } from "@antelopejs/interface-core";
 
 /**
  * Handler function type for processing scheduled tasks
