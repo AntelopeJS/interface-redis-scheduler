@@ -1,3 +1,4 @@
+import { expect } from "chai";
 import { GetClient } from "@antelopejs/interface-redis";
 import {
   addTask,
@@ -7,7 +8,6 @@ import {
   runTasks,
   setHandler,
 } from "@antelopejs/interface-redis-scheduler";
-import { expect } from "chai";
 
 const RedisKey = "SchedulerUtil.Tasks";
 

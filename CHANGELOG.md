@@ -1,6 +1,5 @@
 # Changelog
 
-
 ## v0.0.7
 
 [compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.6...v0.0.7)
@@ -77,7 +76,6 @@
 
 ## v0.0.2
 
-
 ### 🚀 Enhancements
 
 - Add Redis scheduler interface implementation ([0f01f75](https://github.com/AntelopeJS/interface-redis-scheduler/commit/0f01f75))
@@ -101,4 +99,3 @@
 
 - Antony Rizzitelli <upd4ting@gmail.com>
 - Glastis ([@Glastis](http://github.com/Glastis))
-
