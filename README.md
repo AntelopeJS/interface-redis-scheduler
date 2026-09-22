@@ -1,5 +1,3 @@
-![Redis Scheduler](.github/social-card.png)
-
 # Interface Redis Scheduler
 
 <div align="center">
