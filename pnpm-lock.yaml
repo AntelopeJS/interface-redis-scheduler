@@ -13,8 +13,8 @@ importers:
         version: 5.10.1
     devDependencies:
       '@antelopejs/core':
-        specifier: ^1.13.3
-        version: 1.13.3
+        specifier: ^1.13.4
+        version: 1.13.4
       '@antelopejs/interface-core':
         specifier: ^0.1.1
         version: 0.1.1
@@ -66,8 +66,8 @@ importers:
 
 packages:
 
-  '@antelopejs/core@1.13.3':
-    resolution: {integrity: sha512-6xypCf+zUHUC8VdSJtacB+NGYAYVMBjVwHamwSz/GrbwbHGkBtM00b7FSK81AeU8xSpExuHAXcfjk8NTjqQ1bQ==}
+  '@antelopejs/core@1.13.4':
+    resolution: {integrity: sha512-nr28aF/uOLqfZ72HPIxt7cv3YfgAeXEemEZm7mOPCbAr1yXB6CMyBWFHlmlk/vdFChAunnsGwDYqWCDnjTXRnA==}
     engines: {node: '>=20.19'}
     hasBin: true
 
@@ -1001,6 +1001,7 @@ packages:
   basic-ftp@5.2.0:
     resolution: {integrity: sha512-VoMINM2rqJwJgfdHq6RiUudKt2BV+FY5ZFezP/ypmwayk68+NzzAQy4XXLlqsGD4MCzq3DrmNFD/uUmBJuGoXw==}
     engines: {node: '>=10.0.0'}
+    deprecated: Security vulnerability fixed in 5.2.1, please upgrade
 
   before-after-hook@4.0.0:
     resolution: {integrity: sha512-q6tR3RPqIB1pMiTRMFcZwuG5T8vwp+vUvEG0vuI6B+Rikh5BfPp2fQ82c925FOs+b0lcFQ8CFrL+KbilfZFhOQ==}
@@ -2491,7 +2492,7 @@ packages:
 
 snapshots:
 
-  '@antelopejs/core@1.13.3':
+  '@antelopejs/core@1.13.4':
     dependencies:
       '@antelopejs/interface-core': 0.1.1
       '@clack/prompts': 1.8.1

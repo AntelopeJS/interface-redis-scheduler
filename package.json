@@ -46,7 +46,7 @@
     "ioredis": "^5.10.1"
   },
   "devDependencies": {
-    "@antelopejs/core": "^1.13.3",
+    "@antelopejs/core": "^1.13.4",
     "@antelopejs/interface-core": "^0.1.1",
     "@antelopejs/interface-redis": "^0.0.8",
     "@antelopejs/tooling-configs": "^0.0.6",
