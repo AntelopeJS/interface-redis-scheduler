@@ -13,7 +13,7 @@ Task scheduling on Redis for AntelopeJS: schedule a task for a given time, and t
 
 - `setHandler` registers the function that runs one kind of task.
 - `addTask` schedules a task for a Unix timestamp in milliseconds; `removeTask` cancels it.
-- `enableListener` and `disableListener` start and stop the loop that runs due tasks.
+- `enableListener` starts task processing; `disableListener` closes only the notification subscriber, not the pending timer.
 - Tasks live in a Redis sorted set, so they survive restarts and every instance of the application sees the same queue.
 
 ## Implementations
@@ -70,17 +70,22 @@ export async function stop() {
 
 Register a handler before you schedule tasks for it: `addTask` throws for an unknown handler name.
 
+`disableListener()` is not a full shutdown or pause: a pending timer and running handlers can continue processing tasks. See the [current lifecycle and delivery limitations](./docs/1.introduction.md#disablelistener) before using it for shutdown.
+
 ## Documentation
 
-- [Introduction](https://interfaces.antelopejs.com/docs/redis-scheduler/introduction)
+- [Introduction and scheduler reference](./docs/1.introduction.md)
 
 ## Compatibility
 
-| Package                              | Range            |
-| ------------------------------------ | ---------------- |
-| `@antelopejs/interface-core` (peer)  | `>=0.1.1 <1.0.0` |
-| `@antelopejs/interface-redis` (peer) | `>=0.0.8 <1.0.0` |
-| `@antelopejs/core`                   | `1.x`            |
+Requires AntelopeJS core `1.x` and the following peer dependencies:
+
+<!-- docs-compat: ./package.json#peerDependencies -->
+
+| Package                       | Range            |
+| ----------------------------- | ---------------- |
+| `@antelopejs/interface-core`  | `>=0.1.1 <1.0.0` |
+| `@antelopejs/interface-redis` | `>=0.0.8 <1.0.0` |
 
 ## Contributing
 

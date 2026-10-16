@@ -108,8 +108,9 @@ export async function enableListener() {
 }
 
 /**
- * Disables the task execution listener
- * This stops the scheduler from processing any further tasks
+ * Closes the Redis notification subscriber after enableListener() has completed.
+ * This does not clear the pending timer, stop running handlers, or await task completion.
+ * Tasks may continue to execute and schedule further timer checks; this is not a full shutdown.
  *
  * @example
  * ```typescript
@@ -118,7 +119,7 @@ export async function enableListener() {
  * // During application shutdown
  * async function stopApp() {
  *   await disableListener();
- *   console.log('Task scheduler stopped');
+ *   console.log('Scheduler notification subscriber closed; task processing may continue');
  * }
  * ```
  */
