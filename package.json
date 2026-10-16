@@ -1,13 +1,18 @@
 {
   "name": "@antelopejs/interface-redis-scheduler",
   "version": "0.0.7",
-  "description": "AntelopeJS interface for Redis-based task scheduling",
+  "description": "AntelopeJS interface for scheduling tasks on Redis, with retries on failure",
   "keywords": [
     "antelopejs",
     "interface",
     "redis",
-    "scheduler"
+    "scheduler",
+    "tasks"
   ],
+  "homepage": "https://interfaces.antelopejs.com/docs/redis-scheduler",
+  "bugs": {
+    "url": "https://github.com/AntelopeJS/interface-redis-scheduler/issues"
+  },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
