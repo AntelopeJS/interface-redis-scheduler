@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="760" viewBox="0 0 480 760" role="img" aria-labelledby="title desc">
+  <title id="title">Task delivery and the in-flight gap</title>
+  <desc id="desc">A timer reads due tasks from a sorted set and removes them before calling handlers. Successful handlers finish. Thrown errors requeue after five seconds, up to three retries. A crash after removal can lose work; pub/sub only refreshes timers.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="#627d98"/></marker></defs>
+  <rect width="480" height="760" rx="16" fill="#f4f7fb"/>
+  <g font-family="system-ui, sans-serif" fill="#17324d" font-size="18">
+    <text x="24" y="36" font-size="24" font-weight="700">Remove first. Run the handler.</text><text x="24" y="70">One listener · idempotent handlers</text><text x="24" y="99">Application-owned recovery</text>
+    <rect x="24" y="126" width="400" height="86" rx="10" fill="#e2edf8" stroke="#b0c9e0"/><text x="44" y="160" font-size="22" font-weight="700">Queued in Redis</text><text x="44" y="190">Score = due time (milliseconds)</text>
+    <path d="M224 212V246" stroke="#627d98" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="24" y="258" width="400" height="86" rx="10" fill="#fff0cf"/><text x="44" y="292" font-size="22" font-weight="700">Read + remove due tasks</text><text x="44" y="322">Not an atomic claim</text>
+    <path d="M224 344V378" stroke="#627d98" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="24" y="390" width="400" height="86" rx="10" fill="#17324d"/><text x="44" y="424" fill="#fff" font-size="22" font-weight="700">Run handler</text><text x="44" y="454" fill="#d5e5f3">Success → done</text>
+    <path d="M424 433H448V169H424" fill="none" stroke="#627d98" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
+    <text x="24" y="514" font-weight="600">Dashed path: handler throws</text><text x="24" y="544">Retry after 5s · at most 3 retries</text>
+    <rect x="24" y="573" width="432" height="164" rx="8" fill="#fbe6e2"/>
+    <text x="44" y="606" font-size="20" font-weight="600">Crash after removal?</text><text x="44" y="635">The in-flight task can be lost.</text><text x="44" y="669" font-size="16">Pub/sub refreshes timers, not ownership.</text><text x="44" y="699" font-size="16">disableListener() closes notifications only.</text>
+  </g>
+</svg>
