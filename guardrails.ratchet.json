@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "antelopejs/no-comments": 7,
+    "antelopejs/require-assertion": 11,
+    "anti-slop/no-known-value-widening": 1,
+    "anti-slop/no-unsafe-dictionary-type": 2,
+    "anti-slop/require-safety-comment-for-type-assertion": 4,
+    "eslint/max-depth": 1
+  },
+  "oversizeFiles": {}
+}
