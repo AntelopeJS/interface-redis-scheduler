@@ -6,12 +6,12 @@ The AntelopeJS interface for scheduling tasks on Redis, published as `@antelopej
 
 `@antelopejs/interface-core` and `@antelopejs/interface-redis` are peer dependencies with a `>=minimum <1.0.0` range. The devDependency on each pins the same minimum. When you raise a minimum, raise the peer range, the devDependency, and the compatibility table in `README.md` together; the docs check compares that table with `peerDependencies` through its `docs-compat` marker.
 
-The Redis key `SchedulerUtil.Tasks`, the `SchedulerUtil` pub/sub channel and the `RETRY-<n>:<handler>:<info>` member format are shared by every running instance. Changing any of them is a breaking change for deployed apps with queued tasks.
+The Redis key `SchedulerUtil.Tasks`, the `SchedulerUtil` pub/sub channel and the `<handler>:<info>` member format with its `RETRY-<n>:` prefix on re-queued retries are shared by every running instance. Changing any of them is a breaking change for deployed apps with queued tasks.
 
 ## Tests
 
 - `pnpm test` builds `dist`, then runs `ajs module test .`. `src/antelope.test.ts` (`antelopeJs.test` in `package.json`) describes the test project: it installs `@antelopejs/redis` 1.0.3 from npm with `useMock: true`, so no Redis server is needed, and runs the compiled suites in `dist/tests`. The suites are written in `src/tests`.
-- `ajs module test` installs the modules with `corepack pnpm@<packageManager>` when corepack is on `PATH`, and with the `pnpm` on `PATH` otherwise. Node 25 and later do not bundle corepack, so there install pnpm 10.6.5 another way.
+- `ajs module test` installs each module with corepack and the `packageManager` that module pins (`pnpm@10.6.5` for `@antelopejs/redis` 1.0.3) when corepack is on `PATH`, and with the `pnpm` on `PATH` otherwise. Node 25 and later do not bundle corepack, so there install pnpm 10.6.5 another way.
 - `pnpm run checks` does not run the documentation check. CI runs it through the `docs-files` input in `.github/workflows/ci.yml`. To run it locally, clone `AntelopeJS/tooling-configs` at `v0.0.9` (the ref ci-node pins), run `npm ci --prefix actions/docs --omit=dev`, then run `node <clone>/actions/docs/check.mjs --files "$(printf 'README.md\ndocs')"` from this repository.
 
 ## Shipped files
