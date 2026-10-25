@@ -239,6 +239,21 @@ export async function updateTimer() {
   }
 }
 
+async function takeDueTasks(client: Redis): Promise<string[]> {
+  const now = Date.now();
+  const replies = await client
+    .multi()
+    .zrangebyscore(RedisKey, 0, now)
+    .zremrangebyscore(RedisKey, 0, now)
+    .exec();
+  if (!replies) throw new Error("The due-task transaction was aborted");
+  for (const [error] of replies) {
+    if (error) throw error;
+  }
+  const tasks = replies[0]?.[1];
+  return Array.isArray(tasks) ? tasks.map(String) : [];
+}
+
 /**
  * Executes all due tasks
  * This is called internally by the timer when tasks are due for execution
@@ -247,9 +262,8 @@ export async function updateTimer() {
 export async function runTasks() {
   locked = true;
   const client = await GetClient();
-  const tasks = await client.zrangebyscore(RedisKey, 0, Date.now());
+  const tasks = await takeDueTasks(client);
   if (tasks.length > 0) {
-    await client.zrem(RedisKey, ...tasks);
     for (const task of tasks) {
       const m = task.match(RetryPattern);
       try {
