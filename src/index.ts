@@ -239,6 +239,17 @@ export async function updateTimer() {
   }
 }
 
+const TakeDueTasksScript = `
+local due = redis.call("ZRANGEBYSCORE", KEYS[1], 0, ARGV[1])
+redis.call("ZREMRANGEBYSCORE", KEYS[1], 0, ARGV[1])
+return due
+`;
+
+async function takeDueTasks(client: Redis): Promise<string[]> {
+  const tasks = await client.eval(TakeDueTasksScript, 1, RedisKey, Date.now());
+  return Array.isArray(tasks) ? tasks.map(String) : [];
+}
+
 /**
  * Executes all due tasks
  * This is called internally by the timer when tasks are due for execution
@@ -247,9 +258,8 @@ export async function updateTimer() {
 export async function runTasks() {
   locked = true;
   const client = await GetClient();
-  const tasks = await client.zrangebyscore(RedisKey, 0, Date.now());
+  const tasks = await takeDueTasks(client);
   if (tasks.length > 0) {
-    await client.zrem(RedisKey, ...tasks);
     for (const task of tasks) {
       const m = task.match(RetryPattern);
       try {
