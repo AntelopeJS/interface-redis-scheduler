@@ -239,18 +239,14 @@ export async function updateTimer() {
   }
 }
 
+const TakeDueTasksScript = `
+local due = redis.call("ZRANGEBYSCORE", KEYS[1], 0, ARGV[1])
+redis.call("ZREMRANGEBYSCORE", KEYS[1], 0, ARGV[1])
+return due
+`;
+
 async function takeDueTasks(client: Redis): Promise<string[]> {
-  const now = Date.now();
-  const replies = await client
-    .multi()
-    .zrangebyscore(RedisKey, 0, now)
-    .zremrangebyscore(RedisKey, 0, now)
-    .exec();
-  if (!replies) throw new Error("The due-task transaction was aborted");
-  for (const [error] of replies) {
-    if (error) throw error;
-  }
-  const tasks = replies[0]?.[1];
+  const tasks = await client.eval(TakeDueTasksScript, 1, RedisKey, Date.now());
   return Array.isArray(tasks) ? tasks.map(String) : [];
 }
 
