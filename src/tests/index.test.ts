@@ -7,7 +7,7 @@ import {
   removeTask,
   runTasks,
   setHandler,
-} from "@antelopejs/interface-redis-scheduler";
+} from "../index";
 
 const RedisKey = "SchedulerUtil.Tasks";
 
@@ -44,6 +44,29 @@ describe("Redis Scheduler - enableListener / disableListener", () => {
 describe("Redis Scheduler - runTasks", () => {
   it("should execute due tasks", async () => RunDueTasksTest());
   it("should not execute future tasks", async () => SkipFutureTasksTest());
+  it("should keep a task rescheduled while due tasks are collected", async () => {
+    await cleanupRedis();
+    const results: string[] = [];
+    setHandler("test-reschedule", (taskInfo: string) => {
+      results.push(taskInfo);
+    });
+
+    const client = await GetClient();
+    const later = Date.now() + 60000;
+    await client.zadd(RedisKey, Date.now() - 1000, "test-reschedule:renewal");
+
+    await Promise.all([
+      runTasks(),
+      addTask("test-reschedule", later, "renewal"),
+    ]);
+
+    expect(results).to.deep.equal(["renewal"]);
+    expect(await client.zscore(RedisKey, "test-reschedule:renewal")).to.equal(
+      String(later),
+    );
+
+    await cleanupRedis();
+  });
 });
 
 describe("Redis Scheduler - retry logic", () => {
