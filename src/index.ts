@@ -62,7 +62,10 @@ export function setHandler(handlerName: string, handler: HandlerType) {
 /** Redis subscriber client for receiving task updates */
 let subscriber: Redis;
 
-const SubscriberMessageHandlers: Record<string, () => void> = {
+interface MessageHandlerTable {
+  readonly [message: string]: (() => void) | undefined;
+}
+const SubscriberMessageHandlers: MessageHandlerTable = {
   [SchedulerUpdateMessage]: () => void updateTimer(),
 };
 
