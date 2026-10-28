@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch: null
 
 permissions:
   contents: read
@@ -15,6 +16,9 @@ jobs:
       docs-files: |
         README.md
         docs
+    permissions:
+      contents: write
+      actions: write
 
   checks:
     if: always()

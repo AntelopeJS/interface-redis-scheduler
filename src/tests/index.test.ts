@@ -17,33 +17,143 @@ async function cleanupRedis() {
 }
 
 describe("Redis Scheduler - setHandler", () => {
-  it("should register a handler", async () => RegisterHandlerTest());
-  it("should reject handler names containing :", async () =>
-    RejectColonInNameTest());
+  it("should register a handler", async () => {
+    let called = false;
+    setHandler("test-register", () => {
+      called = true;
+    });
+    expect(called).to.equal(false);
+  });
+  it("should reject handler names containing :", async () => {
+    expect(() => setHandler("invalid:name", () => {})).to.throw(
+      "may not contain",
+    );
+  });
 });
 
 describe("Redis Scheduler - addTask", () => {
-  it("should add a task to the sorted set", async () => AddTaskTest());
-  it("should throw for unknown handler", async () =>
-    AddTaskUnknownHandlerTest());
+  it("should add a task to the sorted set", async () => {
+    await cleanupRedis();
+    setHandler("test-add", () => {});
+
+    const dueTime = Date.now() + 60000;
+    await addTask("test-add", dueTime, "task-data");
+
+    const client = await GetClient();
+    const members = await client.zrange(RedisKey, 0, -1);
+    expect(members).to.include("test-add:task-data");
+
+    await cleanupRedis();
+  });
+  it("should throw for unknown handler", async () => {
+    expect(
+      await rejectionMessage(
+        addTask("nonexistent-handler", Date.now(), "data"),
+      ),
+    ).to.include("Unknown SchedulerUtil handler");
+  });
 });
 
 describe("Redis Scheduler - removeTask", () => {
-  it("should remove a task from the sorted set", async () => RemoveTaskTest());
-  it("should throw for unknown handler", async () =>
-    RemoveTaskUnknownHandlerTest());
+  it("should remove a task from the sorted set", async () => {
+    await cleanupRedis();
+    setHandler("test-remove", () => {});
+
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() + 60000, "test-remove:remove-data");
+
+    await removeTask("test-remove", "remove-data");
+
+    const members = await client.zrange(RedisKey, 0, -1);
+    expect(members).to.not.include("test-remove:remove-data");
+
+    await cleanupRedis();
+  });
+  it("should throw for unknown handler", async () => {
+    expect(
+      await rejectionMessage(removeTask("nonexistent-handler", "data")),
+    ).to.include("Unknown SchedulerUtil handler");
+  });
 });
 
 describe("Redis Scheduler - enableListener / disableListener", () => {
-  it("should enable and disable the listener", async () =>
-    EnableDisableListenerTest());
-  it("should use lazyConnect when duplicating client", async () =>
-    EnableListenerUsesLazyConnectTest());
+  it("should enable and disable the listener", async () => {
+    await cleanupRedis();
+    const executed = new Promise<string>((resolve) => {
+      setHandler("test-listener", resolve);
+    });
+
+    await enableListener();
+    try {
+      await addTask("test-listener", Date.now() - 1000, "notified");
+      expect(await executed).to.equal("notified");
+    } finally {
+      await disableListener();
+    }
+
+    await cleanupRedis();
+  });
+  it("should use lazyConnect when duplicating client", async () => {
+    const client = await GetClient();
+    const originalDuplicate = client.duplicate.bind(client);
+    let duplicateOptions: Parameters<typeof client.duplicate>[0];
+
+    client.duplicate = (override) => {
+      duplicateOptions = override;
+      return originalDuplicate(override);
+    };
+
+    try {
+      await enableListener();
+      expect(duplicateOptions).to.deep.include({ lazyConnect: true });
+      await disableListener();
+    } finally {
+      client.duplicate = originalDuplicate;
+    }
+  });
 });
 
 describe("Redis Scheduler - runTasks", () => {
-  it("should execute due tasks", async () => RunDueTasksTest());
-  it("should not execute future tasks", async () => SkipFutureTasksTest());
+  it("should execute due tasks", async () => {
+    await cleanupRedis();
+    const results: string[] = [];
+    setHandler("test-run", (taskInfo: string) => {
+      results.push(taskInfo);
+    });
+
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() - 1000, "test-run:payload1");
+    await client.zadd(RedisKey, Date.now() - 500, "test-run:payload2");
+
+    await runTasks();
+
+    expect(results).to.include("payload1");
+    expect(results).to.include("payload2");
+
+    const remaining = await client.zrange(RedisKey, 0, -1);
+    expect(remaining).to.have.length(0);
+
+    await cleanupRedis();
+  });
+  it("should not execute future tasks", async () => {
+    await cleanupRedis();
+    const results: string[] = [];
+    setHandler("test-future", (taskInfo: string) => {
+      results.push(taskInfo);
+    });
+
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() + 60000, "test-future:future-data");
+
+    await runTasks();
+
+    expect(results).to.have.length(0);
+
+    const remaining = await client.zrange(RedisKey, 0, -1);
+    expect(remaining).to.have.length(1);
+
+    await cleanupRedis();
+  });
   it("should keep a task rescheduled while due tasks are collected", async () => {
     await cleanupRedis();
     const results: string[] = [];
@@ -126,156 +236,35 @@ function isMockClient<T extends object>(
 }
 
 describe("Redis Scheduler - retry logic", () => {
-  it("should retry failed tasks up to 3 times", async () =>
-    RetryFailedTasksTest());
+  it("should retry failed tasks up to 3 times", async () => {
+    await cleanupRedis();
+    let callCount = 0;
+    setHandler("test-retry", () => {
+      callCount++;
+      throw new Error("intentional failure");
+    });
+
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() - 1000, "test-retry:retry-data");
+
+    await runTasks();
+    expect(callCount).to.equal(1);
+
+    const retryMembers = await client.zrange(RedisKey, 0, -1);
+    expect(retryMembers).to.have.length(1);
+    expect(retryMembers[0]).to.match(/^RETRY-1:test-retry:retry-data$/);
+
+    await cleanupRedis();
+  });
 });
 
-async function RegisterHandlerTest() {
-  let called = false;
-  setHandler("test-register", () => {
-    called = true;
-  });
-  expect(called).to.equal(false);
-}
-
-async function RejectColonInNameTest() {
+async function rejectionMessage(
+  promise: Promise<unknown>,
+): Promise<string | undefined> {
   try {
-    setHandler("invalid:name", () => {});
-    expect.fail("should have thrown");
+    await promise;
   } catch (err) {
-    expect((err as Error).message).to.include("may not contain");
+    return err instanceof Error ? err.message : undefined;
   }
-}
-
-async function AddTaskTest() {
-  await cleanupRedis();
-  setHandler("test-add", () => {});
-
-  const dueTime = Date.now() + 60000;
-  await addTask("test-add", dueTime, "task-data");
-
-  const client = await GetClient();
-  const members = await client.zrange(RedisKey, 0, -1);
-  expect(members).to.include("test-add:task-data");
-
-  await cleanupRedis();
-}
-
-async function AddTaskUnknownHandlerTest() {
-  try {
-    await addTask("nonexistent-handler", Date.now(), "data");
-    expect.fail("should have thrown");
-  } catch (err) {
-    expect((err as Error).message).to.include("Unknown SchedulerUtil handler");
-  }
-}
-
-async function RemoveTaskTest() {
-  await cleanupRedis();
-  setHandler("test-remove", () => {});
-
-  const client = await GetClient();
-  await client.zadd(RedisKey, Date.now() + 60000, "test-remove:remove-data");
-
-  await removeTask("test-remove", "remove-data");
-
-  const members = await client.zrange(RedisKey, 0, -1);
-  expect(members).to.not.include("test-remove:remove-data");
-
-  await cleanupRedis();
-}
-
-async function RemoveTaskUnknownHandlerTest() {
-  try {
-    await removeTask("nonexistent-handler", "data");
-    expect.fail("should have thrown");
-  } catch (err) {
-    expect((err as Error).message).to.include("Unknown SchedulerUtil handler");
-  }
-}
-
-async function EnableDisableListenerTest() {
-  await enableListener();
-  await disableListener();
-}
-
-async function EnableListenerUsesLazyConnectTest() {
-  const client = await GetClient();
-  const originalDuplicate = client.duplicate.bind(client);
-  let duplicateOptions: Record<string, unknown> | undefined;
-
-  client.duplicate = ((override?: Record<string, unknown>) => {
-    duplicateOptions = override;
-    return originalDuplicate(override);
-  }) as typeof client.duplicate;
-
-  await enableListener();
-
-  expect(duplicateOptions).to.deep.include({ lazyConnect: true });
-
-  await disableListener();
-  client.duplicate = originalDuplicate;
-}
-
-async function RunDueTasksTest() {
-  await cleanupRedis();
-  const results: string[] = [];
-  setHandler("test-run", (taskInfo: string) => {
-    results.push(taskInfo);
-  });
-
-  const client = await GetClient();
-  await client.zadd(RedisKey, Date.now() - 1000, "test-run:payload1");
-  await client.zadd(RedisKey, Date.now() - 500, "test-run:payload2");
-
-  await runTasks();
-
-  expect(results).to.include("payload1");
-  expect(results).to.include("payload2");
-
-  const remaining = await client.zrange(RedisKey, 0, -1);
-  expect(remaining).to.have.length(0);
-
-  await cleanupRedis();
-}
-
-async function SkipFutureTasksTest() {
-  await cleanupRedis();
-  const results: string[] = [];
-  setHandler("test-future", (taskInfo: string) => {
-    results.push(taskInfo);
-  });
-
-  const client = await GetClient();
-  await client.zadd(RedisKey, Date.now() + 60000, "test-future:future-data");
-
-  await runTasks();
-
-  expect(results).to.have.length(0);
-
-  const remaining = await client.zrange(RedisKey, 0, -1);
-  expect(remaining).to.have.length(1);
-
-  await cleanupRedis();
-}
-
-async function RetryFailedTasksTest() {
-  await cleanupRedis();
-  let callCount = 0;
-  setHandler("test-retry", () => {
-    callCount++;
-    throw new Error("intentional failure");
-  });
-
-  const client = await GetClient();
-  await client.zadd(RedisKey, Date.now() - 1000, "test-retry:retry-data");
-
-  await runTasks();
-  expect(callCount).to.equal(1);
-
-  const retryMembers = await client.zrange(RedisKey, 0, -1);
-  expect(retryMembers).to.have.length(1);
-  expect(retryMembers[0]).to.match(/^RETRY-1:test-retry:retry-data$/);
-
-  await cleanupRedis();
+  return undefined;
 }
