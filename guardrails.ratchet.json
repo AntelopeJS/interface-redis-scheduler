@@ -1,7 +1,6 @@
 {
   "rules": {
-    "anti-slop/no-known-value-widening": 1,
-    "eslint/max-depth": 1
+    "anti-slop/no-known-value-widening": 1
   },
   "oversizeFiles": {}
 }

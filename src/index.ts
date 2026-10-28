@@ -259,24 +259,22 @@ export async function runTasks() {
   locked = true;
   const client = await GetClient();
   const tasks = await takeDueTasks(client);
-  if (tasks.length > 0) {
-    for (const task of tasks) {
-      const m = task.match(RetryPattern);
-      try {
-        if (m && handlers.has(m[2])) {
-          await handlers.get(m[2])?.(m[3]);
-        }
-      } catch (err) {
-        Logging.Error(err);
-        if (m) {
-          const retryCount = m[1] ? parseInt(m[1], 10) : 0;
-          if (retryCount < MaxRetries) {
-            await client.zadd(
-              RedisKey,
-              Date.now() + RetryDelayMs,
-              `RETRY-${retryCount + 1}:${m[2]}:${m[3]}`,
-            );
-          }
+  for (const task of tasks) {
+    const m = task.match(RetryPattern);
+    try {
+      if (m && handlers.has(m[2])) {
+        await handlers.get(m[2])?.(m[3]);
+      }
+    } catch (err) {
+      Logging.Error(err);
+      if (m) {
+        const retryCount = m[1] ? parseInt(m[1], 10) : 0;
+        if (retryCount < MaxRetries) {
+          await client.zadd(
+            RedisKey,
+            Date.now() + RetryDelayMs,
+            `RETRY-${retryCount + 1}:${m[2]}:${m[3]}`,
+          );
         }
       }
     }
