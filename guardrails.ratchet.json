@@ -1,6 +1,5 @@
 {
   "rules": {
-    "antelopejs/no-comments": 7,
     "anti-slop/no-known-value-widening": 1,
     "eslint/max-depth": 1
   },
