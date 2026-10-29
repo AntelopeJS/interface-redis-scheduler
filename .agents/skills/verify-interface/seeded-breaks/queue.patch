@@ -1,0 +1,13 @@
+diff --git a/src/index.ts b/src/index.ts
+index 088f86d..7c6dcbd 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -203,7 +203,7 @@ export async function removeTask(handlerName: string, taskInfo: string) {
+     throw new Error(`Unknown SchedulerUtil handler: ${handlerName}`);
+   }
+   const client = await GetClient();
+-  await client.zrem(RedisKey, createTaskMember(handlerName, taskInfo));
++  await client.zrem(RedisKey, taskInfo);
+ }
+ 
+ /** Flag to prevent concurrent task execution */
