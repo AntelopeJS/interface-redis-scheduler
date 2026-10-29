@@ -15,7 +15,7 @@ journeys:
 ## Sub-features
 
 - `due-delivery`: a past-due `echo:p:q:r` reaches its handler once with `p:q:r` (the payload keeps its colons) and leaves the set; a task due in 2100 stays queued. Redis is read back through `redis-cli`.
-- `retry-chain`: a handler that always throws turns `flaky:job` into `RETRY-1:flaky:job`, then `RETRY-2`, then `RETRY-3`, each scored 4 to 6.5 seconds ahead, and the fourth failure leaves the set empty after four handler calls in total.
+- `retry-chain`: a handler that always throws turns `flaky:job` into `RETRY-1:flaky:job`, then `RETRY-2`, then `RETRY-3`, each scored 4 to 6.5 seconds ahead, and the fourth failure leaves the set empty after four handler calls in total. Before the scenario, `redis-cli` seeds a past-due `RETRY-2:flaky:old` in the shape the last published release (0.0.9) wrote; the head's `runTasks` must run it and re-queue it as `RETRY-3:flaky:old`. This is a containment journey of the Format door.
 
 ## How to get to it (user POV)
 

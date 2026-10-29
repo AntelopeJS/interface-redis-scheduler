@@ -13,7 +13,7 @@ A module calls `addTask(handlerName, dueTime, taskInfo)` to store a task in the 
 
 ## Sub-features
 
-- `queue-members`: against a live Redis (Docker) with a Redis client handed to `interface-redis`: `addTask` stores `mail:a:b` (a colon in the payload is kept) at its due score; adding the same pair again would move it, not duplicate it; an unknown handler rejects both calls with the documented message; `removeTask` removes exactly the member and ignores one that was never added. The sorted set is read back with `redis-cli zrange ... withscores`.
+- `queue-members`: against a live Redis (Docker) with a Redis client handed to `interface-redis`: `addTask` stores `mail:a:b` (a colon in the payload is kept) at its due score; adding the same pair again would move it, not duplicate it; an unknown handler rejects both calls with the documented message; `removeTask` removes exactly the member and ignores one that was never added. Before the scenario, `redis-cli` seeds two members in the shape the last published release (0.0.9) wrote, `mail:legacy` and `mail:legacy-keep`; the head's `removeTask` must remove the first and leave the second. The sorted set is read back with `redis-cli zrange ... withscores`. This is a containment journey of the Format door.
 
 ## How to get to it (user POV)
 
