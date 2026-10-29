@@ -1,0 +1,9 @@
+diff --git a/package.json b/package.json
+index 380ff37..bac42ff 100644
+--- a/package.json
++++ b/package.json
+@@ -35,3 +35,3 @@
+   "publishConfig": {
+-    "access": "public",
++    "access": "restricted",
+     "provenance": true

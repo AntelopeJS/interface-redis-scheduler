@@ -1,0 +1,13 @@
+diff --git a/src/index.ts b/src/index.ts
+index 088f86d..9110863 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -10,7 +10,7 @@ import { RegisteringProxy } from "@antelopejs/interface-core";
+ type HandlerType = (taskInfo: string) => void | Promise<void>;
+ 
+ /** Redis key used to store scheduled tasks in a sorted set */
+-const RedisKey = "SchedulerUtil.Tasks";
++const RedisKey = "SchedulerUtil.Queue";
+ const SchedulerChannel = "SchedulerUtil";
+ const SchedulerUpdateMessage = "update";
+ const MaxRetries = 3;

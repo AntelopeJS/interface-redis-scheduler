@@ -1,0 +1,13 @@
+diff --git a/src/index.ts b/src/index.ts
+index 088f86d..94fbe9b 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -169,7 +169,7 @@ export async function addTask(
+ 
+   const client = await GetClient();
+   await client.zadd(RedisKey, dueTime, createTaskMember(handlerName, taskInfo));
+-  if (!locked) {
++  if (locked) {
+     void client.publish(SchedulerChannel, SchedulerUpdateMessage);
+   }
+ }
