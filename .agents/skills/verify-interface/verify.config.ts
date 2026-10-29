@@ -37,6 +37,8 @@ interface Scenario {
   body: string;
   printed: string;
   stored: string;
+  /** `redis-cli` commands run before the scenario: members written in the shape of the last published release (0.0.9), which the packed head must read. */
+  seed?: string[][];
 }
 
 const SETTLE_MS = 500;
@@ -70,12 +72,16 @@ async function withRedis(context: JourneyContext, use: (url: string, name: strin
 }
 
 /** Runs a scenario against the packed scheduler and a live Redis, then reads the sorted set back through redis-cli: the second view. */
-function scenario({ title, body, printed, stored }: Scenario): Journey {
+function scenario({ title, body, printed, stored, seed = [] }: Scenario): Journey {
   return {
     title,
     entryPoint: "the packed scheduler driven from a Node process with a Redis client handed to interface-redis",
     async run(context) {
       await withRedis(context, async (url, container) => {
+        for (const command of seed) {
+          const seeded = await context.command("seed a member the 0.0.9 release wrote", "docker", ["exec", container, "redis-cli", ...command]);
+          context.expect(seeded.folder, [equal("redis-cli stored the seeded member", seeded.stdout.trim(), "1")], { critical: true });
+        }
         const file = `${context.work}/scenario.js`;
         context.edit("write the scenario", file, `${SCENARIO_PRELUDE}\nasync function main() {\n${body}\n}\n${SCENARIO_TAIL}`);
         const ran = await context.command("run the scenario", "node", [file, `${context.repo}/dist/index.js`, url], { timeoutMs: 60_000 });
@@ -140,6 +146,7 @@ const QUEUE_BODY = `
   const unknownRemove = await rejection(scheduler.removeTask("nobody", "x"));
   await scheduler.removeTask("mail", "first");
   await scheduler.removeTask("mail", "never-added");
+  await scheduler.removeTask("mail", "legacy");
   return { unknownAdd, unknownRemove, members: await redis.zrange(KEY, 0, -1) };
 `;
 
@@ -162,6 +169,10 @@ const DELIVERY_BODY = `
 const RETRY_BODY = `
   const attempts = [];
   scheduler.setHandler("flaky", (info) => { attempts.push(info); throw new Error("flaky " + info); });
+  const beforeLegacy = Date.now();
+  await scheduler.runTasks();
+  const legacyRows = await redis.zrange(KEY, 0, -1, "WITHSCORES");
+  const legacy = [legacyRows[0], Number(legacyRows[1]) - beforeLegacy >= 4000 && Number(legacyRows[1]) - beforeLegacy <= 6500];
   const stage = async (member) => {
     await redis.del(KEY);
     await redis.zadd(KEY, Date.now() - 1000, member);
@@ -174,7 +185,7 @@ const RETRY_BODY = `
   const second = await stage("RETRY-1:flaky:job");
   const third = await stage("RETRY-2:flaky:job");
   const last = await stage("RETRY-3:flaky:job");
-  return { first, second, third, last, attempts: attempts.length };
+  return { legacy, first, second, third, last, attempts: attempts.length };
 `;
 
 const LISTENER_BODY = `
@@ -231,8 +242,12 @@ const config: VerifyConfig = {
       title: "addTask and removeTask keep handlerName:taskInfo members in the sorted set",
       body: QUEUE_BODY,
       printed:
-        '{"unknownAdd":"Unknown SchedulerUtil handler: nobody","unknownRemove":"Unknown SchedulerUtil handler: nobody","members":["mail:a:b","mail:second"]}',
-      stored: `mail:a:b\n${LATER}\nmail:second\n${LATER + 1000}`,
+        '{"unknownAdd":"Unknown SchedulerUtil handler: nobody","unknownRemove":"Unknown SchedulerUtil handler: nobody","members":["mail:a:b","mail:second","mail:legacy-keep"]}',
+      stored: `mail:a:b\n${LATER}\nmail:second\n${LATER + 1000}\nmail:legacy-keep\n${LATER + 3000}`,
+      seed: [
+        ["zadd", QUEUE_KEY, String(LATER + 2000), "mail:legacy"],
+        ["zadd", QUEUE_KEY, String(LATER + 3000), "mail:legacy-keep"],
+      ],
     }),
     "handler-names": scenario({
       title: "setHandler refuses a name with a colon and accepts any other",
@@ -250,8 +265,9 @@ const config: VerifyConfig = {
       title: "a failing handler is retried as RETRY-1 to RETRY-3 about five seconds later, then dropped",
       body: RETRY_BODY,
       printed:
-        '{"first":["RETRY-1:flaky:job",true],"second":["RETRY-2:flaky:job",true],"third":["RETRY-3:flaky:job",true],"last":[],"attempts":4}',
+        '{"legacy":["RETRY-3:flaky:old",true],"first":["RETRY-1:flaky:job",true],"second":["RETRY-2:flaky:job",true],"third":["RETRY-3:flaky:job",true],"last":[],"attempts":5}',
       stored: "",
+      seed: [["zadd", QUEUE_KEY, "1000", "RETRY-2:flaky:old"]],
     }),
     "listener-timer": scenario({
       title: "an enabled listener runs a task when it falls due, and not before",
