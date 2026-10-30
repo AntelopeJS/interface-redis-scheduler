@@ -80,12 +80,14 @@ Register a handler before you schedule tasks for it: `addTask` throws for an unk
 
 Requires AntelopeJS core `1.x` and the following peer dependencies:
 
-<!-- docs-compat: ./package.json#peerDependencies -->
+<!-- antelopejs-docs-compat:start -->
 
-| Package                       | Range            |
-| ----------------------------- | ---------------- |
-| `@antelopejs/interface-core`  | `>=0.2.4 <1.0.0` |
-| `@antelopejs/interface-redis` | `>=0.0.9 <1.0.0` |
+| Package                       | Supported        | Tested with |
+| ----------------------------- | ---------------- | ----------- |
+| `@antelopejs/interface-core`  | `>=0.2.4 <1.0.0` | `0.2.4`     |
+| `@antelopejs/interface-redis` | `>=0.0.9 <1.0.0` | `0.0.9`     |
+
+<!-- antelopejs-docs-compat:end -->
 
 ## Contributing
 
