@@ -232,7 +232,18 @@ interface MockStore {
 function isMockClient<T extends object>(
   client: T,
 ): client is T & { data: MockStore } {
-  return "data" in client;
+  if (!("data" in client)) {
+    return false;
+  }
+  const { data } = client;
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "get" in data &&
+    typeof data.get === "function" &&
+    "has" in data &&
+    typeof data.has === "function"
+  );
 }
 
 describe("Redis Scheduler - retry logic", () => {
