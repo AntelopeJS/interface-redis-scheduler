@@ -62,13 +62,6 @@ export function setHandler(handlerName: string, handler: HandlerType) {
 /** Redis subscriber client for receiving task updates */
 let subscriber: Redis;
 
-interface MessageHandlerTable {
-  readonly [message: string]: (() => void) | undefined;
-}
-const SubscriberMessageHandlers: MessageHandlerTable = {
-  [SchedulerUpdateMessage]: () => void updateTimer(),
-};
-
 function createTaskMember(handlerName: string, taskInfo: string): string {
   return `${handlerName}:${taskInfo}`;
 }
@@ -100,11 +93,9 @@ export async function enableListener() {
     if (channel !== SchedulerChannel) {
       return;
     }
-    const handler = SubscriberMessageHandlers[message];
-    if (!handler) {
-      return;
+    if (message === SchedulerUpdateMessage) {
+      void updateTimer();
     }
-    handler();
   });
 
   void updateTimer();
