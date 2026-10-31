@@ -78,7 +78,7 @@ Register a handler before you schedule tasks for it: `addTask` throws for an unk
 
 ## Compatibility
 
-Requires AntelopeJS core `1.x` and the following peer dependencies:
+The module declares these peer dependencies:
 
 <!-- antelopejs-docs-compat:start -->
 
