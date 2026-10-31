@@ -1,3 +1,4 @@
+import { createConnection } from "node:net";
 import { equal } from "@antelopejs/tooling-configs/verify";
 import type { Journey, JourneyContext, VerifyConfig } from "@antelopejs/tooling-configs/verify";
 
@@ -44,6 +45,23 @@ interface Scenario {
 const SETTLE_MS = 500;
 const READY_POLLS = 40;
 
+/** True when a host-side client gets `+PONG` through the published port: the path the scenario's Redis client takes, which `redis-cli` inside the container does not exercise. */
+function answersPong(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = createConnection({ host: "127.0.0.1", port });
+    let reply = "";
+    socket.setTimeout(SETTLE_MS * 2);
+    socket.on("connect", () => socket.write("PING\r\n"));
+    socket.on("data", (chunk) => {
+      reply += chunk.toString("utf8");
+      socket.destroy();
+    });
+    socket.on("timeout", () => socket.destroy());
+    socket.on("error", () => socket.destroy());
+    socket.on("close", () => resolve(reply.startsWith("+PONG")));
+  });
+}
+
 /** Starts a disposable Redis in Docker on a free loopback port, hands its URL to `use`, and removes the container whatever happens: the interface kind starts no services of its own. */
 async function withRedis(context: JourneyContext, use: (url: string, name: string) => Promise<void>): Promise<void> {
   const name = `${process.env.VERIFY_CONTAINER_PREFIX ?? "verify"}-interface-redis-scheduler-redis-${Date.now().toString(36)}`;
@@ -54,14 +72,13 @@ async function withRedis(context: JourneyContext, use: (url: string, name: strin
     context.expect(started.folder, [{ name: "redis container started", pass: started.exitCode === 0, detail: started.stderr.slice(-300) }], {
       critical: true,
     });
-    let ready = false;
-    for (let poll = 0; poll < READY_POLLS && !ready; poll += 1) {
-      const ping = await context.command("redis ping", "docker", ["exec", name, "redis-cli", "ping"]);
-      ready = ping.stdout.includes("PONG");
-      if (!ready) await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
-    }
     const mapped = await context.command("redis port", "docker", ["port", name, "6379/tcp"]);
     const port = /:(\d+)$/m.exec(mapped.stdout)?.[1];
+    let ready = false;
+    for (let poll = 0; poll < READY_POLLS && !ready && port !== undefined; poll += 1) {
+      ready = await answersPong(Number(port));
+      if (!ready) await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+    }
     context.expect(mapped.folder, [{ name: "redis answered PONG on a published port", pass: ready && port !== undefined, detail: mapped.stdout }], {
       critical: true,
     });
