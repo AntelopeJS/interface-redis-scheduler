@@ -277,6 +277,18 @@ const config: VerifyConfig = {
     }),
     signatures: declared("the seven exports have the documented signatures", SIGNATURES),
   },
+  formal: [
+    {
+      name: "formal-scheduler-delivery",
+      covers: ["src/index.ts"],
+      files: [".agents/skills/formal-scheduler-delivery/**"],
+      command: ["node", ".agents/skills/formal-scheduler-delivery/check.mjs", "--full"],
+      baseCommand: ["node", ".agents/skills/formal-scheduler-delivery/check.mjs"],
+      violation: /^(?:finding|BROKEN|CHANGED|HOLDS) +(\w+)/gm,
+      passing: /(?<=^holds +(?:\w+, )*)(\w+)(?=,| \()/gm,
+      behaviour: { kind: "emit" },
+    },
+  ],
 };
 
 export default config;
