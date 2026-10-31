@@ -3,7 +3,7 @@
 <div align="center">
 <a href="https://www.npmjs.com/package/@antelopejs/interface-redis-scheduler"><img alt="npm" src="https://img.shields.io/npm/v/@antelopejs/interface-redis-scheduler?style=for-the-badge&labelColor=000000&color=000000"></a>
 <a href="./LICENSE"><img alt="License" src="https://img.shields.io/npm/l/@antelopejs/interface-redis-scheduler?style=for-the-badge&labelColor=000000&color=000000"></a>
-<a href="https://discord.gg/kxzZMWqdFU"><img alt="Discord" src="https://img.shields.io/badge/Discord-18181B?logo=discord&style=for-the-badge&color=000000"></a>
+<a href="https://discord.gg/g4pFt6eXqu"><img alt="Discord" src="https://img.shields.io/badge/Discord-18181B?logo=discord&style=for-the-badge&color=000000"></a>
 <a href="https://interfaces.antelopejs.com/docs/redis-scheduler"><img alt="Docs" src="https://img.shields.io/badge/Docs-18181B?style=for-the-badge&color=000000"></a>
 </div>
 
