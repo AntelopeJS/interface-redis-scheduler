@@ -21,9 +21,29 @@ jobs:
     permissions:
       contents: read
 
+  formal-scheduler-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/antelopejs-formal
+          key: tla2tools-1.7.4
+      - run: node .agents/skills/formal-scheduler-delivery/check.mjs
+
   checks:
     if: always()
-    needs: [ci]
+    needs: [ci, formal-scheduler-delivery]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
