@@ -1,6 +1,6 @@
 ---
 name: redis-scheduler-interface
-description: Distributed Redis-backed task scheduling for AntelopeJS. Register named handlers, schedule tasks at a due timestamp in a Redis sorted set, and run them with automatic retries; listeners claim due tasks atomically and wake each other through pub/sub. Use when code imports '@antelopejs/interface-redis-scheduler', when a task involves scheduling delayed/deferred jobs, reminders, or background work in an AntelopeJS module, or when symbols like setHandler, addTask, removeTask, enableListener, disableListener, or the SchedulerUtil.Tasks Redis key appear.
+description: Distributed Redis-backed task scheduling for AntelopeJS. Register named handlers, schedule tasks at a due timestamp in a Redis sorted set, and execute them with automatic retries; listeners across instances claim due tasks atomically, and pub/sub only re-arms their timers. Use when code imports '@antelopejs/interface-redis-scheduler', when a task involves scheduling delayed/deferred jobs, reminders, or background work in an AntelopeJS module, or when symbols like setHandler, addTask, removeTask, enableListener, disableListener, or the SchedulerUtil.Tasks Redis key appear.
 category: antelopejs-interface
 tags: [antelopejs, redis, scheduler, tasks, background-jobs]
 ---
@@ -96,9 +96,13 @@ await disableListener();
 - The listener's timer waits at most 24 hours before it checks again.
 - `enableListener` duplicates the shared Redis client into a dedicated
   subscriber connection. `disableListener` quits that subscriber.
-- `disableListener` only quits the subscriber connection. It does not clear a
-  pending execution timer, so a task that comes due right after shutdown may
-  still run once. It rejects if `enableListener` was never called.
+- `disableListener` only quits the subscriber connection. It does not clear
+  the pending timer, cancel running handlers, or wait for tasks to complete.
+  An armed timer keeps running due tasks and arming the next timer through
+  `updateTimer()`, so tasks can keep running after it returns. Do not use it as
+  a pause, a drain, or a guarantee that no more tasks run: the public API has
+  no operation that stops the timer. It rejects if `enableListener` was never
+  called.
 - Peer interfaces `@antelopejs/interface-core` and `@antelopejs/interface-redis`
   must be installed alongside this package.
 
