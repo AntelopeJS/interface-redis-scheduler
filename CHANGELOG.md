@@ -1,5 +1,38 @@
 # Changelog
 
+## v0.0.10
+
+[compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.9...v0.0.10)
+
+### 🚀 Enhancements
+
+- **skills:** Add the verify-interface verification skill ([#31](https://github.com/AntelopeJS/interface-redis-scheduler/pull/31))
+
+### 🩹 Fixes
+
+- **skills:** Make the verify containments catch their doors ([#32](https://github.com/AntelopeJS/interface-redis-scheduler/pull/32))
+
+### 💅 Refactors
+
+- Clean the repo with the guardrail pack ([#28](https://github.com/AntelopeJS/interface-redis-scheduler/pull/28))
+
+### 📖 Documentation
+
+- **readme:** Use one Discord invite ([#41](https://github.com/AntelopeJS/interface-redis-scheduler/pull/41))
+- **github:** Send questions and ideas to Discord ([#44](https://github.com/AntelopeJS/interface-redis-scheduler/pull/44))
+
+### 📦 Build
+
+- **deps:** Bump @antelopejs/tooling-configs to 0.2.17 ([#33](https://github.com/AntelopeJS/interface-redis-scheduler/pull/33))
+
+### 🏡 Chore
+
+- Land the cleanup campaign on main ([#49](https://github.com/AntelopeJS/interface-redis-scheduler/pull/49))
+
+### ❤️ Contributors
+
+- Antony Rizzitelli ([@Upd4ting](http://github.com/Upd4ting))
+
 ## v0.0.9
 
 [compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.7...v0.0.9)
