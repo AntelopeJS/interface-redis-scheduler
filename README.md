@@ -1,26 +1,26 @@
-# @antelopejs/interface-redis-scheduler
+# `@antelopejs/interface-redis-scheduler`
 
 <div align="center">
-<a href="https://www.npmjs.com/package/@antelopejs/interface-redis-scheduler"><img alt="npm" src="https://img.shields.io/npm/v/@antelopejs/interface-redis-scheduler?style=for-the-badge&labelColor=000000&color=000000"></a>
-<a href="./LICENSE"><img alt="License" src="https://img.shields.io/npm/l/@antelopejs/interface-redis-scheduler?style=for-the-badge&labelColor=000000&color=000000"></a>
-<a href="https://discord.gg/g4pFt6eXqu"><img alt="Discord" src="https://img.shields.io/badge/Discord-18181B?logo=discord&style=for-the-badge&color=000000"></a>
-<a href="https://interfaces.antelopejs.com/docs/redis-scheduler"><img alt="Docs" src="https://img.shields.io/badge/Docs-18181B?style=for-the-badge&color=000000"></a>
+<a href="https://www.npmjs.com/package/@antelopejs/interface-redis-scheduler"><img data-illustration alt="npm" src="https://img.shields.io/npm/v/@antelopejs/interface-redis-scheduler?style=for-the-badge&labelColor=000000&color=000000"></a>
+<a href="./LICENSE"><img data-illustration alt="License" src="https://img.shields.io/npm/l/@antelopejs/interface-redis-scheduler?style=for-the-badge&labelColor=000000&color=000000"></a>
+<a href="https://discord.gg/g4pFt6eXqu"><img data-illustration alt="Discord" src="https://img.shields.io/badge/Discord-18181B?logo=discord&style=for-the-badge&color=000000"></a>
+<a href="https://interfaces.antelopejs.com/docs/redis-scheduler"><img data-illustration alt="Docs" src="https://img.shields.io/badge/Docs-18181B?style=for-the-badge&color=000000"></a>
 </div>
 
-Task scheduling on Redis for AntelopeJS: schedule a task for a given time, and the application runs it when it is due, with up to three retries on failure.
+Task scheduling on Redis for AntelopeJS. You schedule a task for a given time, and a listener in your application runs it when it is due, with up to three retries on failure.
 
 ## What it offers
 
 - `setHandler` registers the function that runs one kind of task.
-- `addTask` schedules a task for a Unix timestamp in milliseconds; `removeTask` cancels it.
-- `enableListener` starts task processing; `disableListener` closes only the notification subscriber, not the pending timer.
-- Tasks live in a Redis sorted set, so they survive restarts and every instance of the application sees the same queue.
+- `addTask` schedules a task for a Unix timestamp in milliseconds. `removeTask` removes the queued entry before it runs.
+- `enableListener` starts task processing. `disableListener` closes only the notification subscriber, not the pending timer.
+- Tasks live in a Redis sorted set, so they survive application restarts and every instance of the application sees the same queue. Each due task goes to one listener.
 
 ## Implementations
 
-| Module                                                     | Notes                                         |
-| ---------------------------------------------------------- | --------------------------------------------- |
-| [`@antelopejs/redis`](https://github.com/AntelopeJS/redis) | Also implements `@antelopejs/interface-redis` |
+| Module                                                     | Notes                                                                                             |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| [`@antelopejs/redis`](https://github.com/AntelopeJS/redis) | Also implements `@antelopejs/interface-redis`, which supplies the Redis client the scheduler uses |
 
 ## Install
 
@@ -68,9 +68,9 @@ export async function stop() {
 }
 ```
 
-Register a handler before you schedule tasks for it: `addTask` throws for an unknown handler name.
+Register a handler before you schedule tasks for it. `addTask` rejects for a handler name that this process has not registered.
 
-`disableListener()` is not a full shutdown or pause: a pending timer and running handlers can continue processing tasks. See the [current lifecycle and delivery limitations](./docs/1.introduction.md#disablelistener) before using it for shutdown.
+`disableListener()` is not a full shutdown or pause. A pending timer and running handlers can continue to process tasks. Read the [lifecycle and delivery limits](./docs/1.introduction.md#disablelistener) before you use it for shutdown.
 
 ## Documentation
 
@@ -78,7 +78,7 @@ Register a handler before you schedule tasks for it: `addTask` throws for an unk
 
 ## Compatibility
 
-Requires AntelopeJS core `1.x` and the following peer dependencies:
+The module declares these peer dependencies:
 
 <!-- antelopejs-docs-compat:start -->
 

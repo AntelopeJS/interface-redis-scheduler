@@ -1,9 +1,9 @@
 diff --git a/src/index.ts b/src/index.ts
-index 088f86d..00e0ed2 100644
+index 9a94231..247b2ac 100644
 --- a/src/index.ts
 +++ b/src/index.ts
-@@ -70,7 +70,7 @@ const SubscriberMessageHandlers: MessageHandlerTable = {
- };
+@@ -63,7 +63,7 @@ export function setHandler(handlerName: string, handler: HandlerType) {
+ let subscriber: Redis;
  
  function createTaskMember(handlerName: string, taskInfo: string): string {
 -  return `${handlerName}:${taskInfo}`;

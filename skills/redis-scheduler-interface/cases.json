@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "redis-scheduler-interface-delayed-job",
+      "area": "framework",
+      "style": "clean",
+      "prompt": "In my AntelopeJS module, schedule a reminder email to run 24 hours after a booking is created, and have it run on whichever instance is listening.",
+      "expect": {
+        "skills": ["redis-scheduler-interface"],
+        "acceptable": [
+          "redis-interface",
+          "ajs-consume-interface",
+          "antelopejs"
+        ],
+        "mustMention": ["setHandler", "addTask"]
+      }
+    },
+    {
+      "id": "redis-scheduler-interface-delayed-job-casual",
+      "area": "framework",
+      "style": "casual",
+      "prompt": "need to run a job later, like in an hour, across my instances. whats the antelope way",
+      "expect": {
+        "skills": ["redis-scheduler-interface"],
+        "acceptable": [
+          "redis-interface",
+          "ajs-consume-interface",
+          "antelopejs"
+        ],
+        "mustMention": ["addTask"]
+      }
+    },
+    {
+      "id": "redis-scheduler-interface-redis-neighbour",
+      "area": "framework",
+      "style": "clean",
+      "prompt": "Cache the result of an expensive lookup in Redis for 10 minutes from my AntelopeJS module.",
+      "expect": {
+        "skills": ["redis-interface"],
+        "acceptable": ["ajs-consume-interface", "antelopejs"],
+        "avoid": ["redis-scheduler-interface"]
+      }
+    },
+    {
+      "id": "redis-scheduler-interface-two-listeners",
+      "area": "framework",
+      "style": "clean",
+      "prompt": "Three instances of my module call enableListener from @antelopejs/interface-redis-scheduler. Can a due task run on more than one of them?",
+      "expect": {
+        "skills": ["redis-scheduler-interface"],
+        "acceptable": ["redis-interface", "antelopejs"],
+        "mustMention": ["Lua"]
+      }
+    }
+  ]
+}
