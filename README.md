@@ -9,6 +9,8 @@
 
 Task scheduling on Redis for AntelopeJS. You schedule a task for a given time, and a listener in your application runs it when it is due, with up to three retries on failure.
 
+Part of [AntelopeJS](https://github.com/AntelopeJS/antelopejs), the TypeScript framework where modules depend on contracts and the application chooses the provider. Built by the team behind [AntelopeJS DMS](https://github.com/AntelopeJS/dms).
+
 ## What it offers
 
 - `setHandler` registers the function that runs one kind of task.
