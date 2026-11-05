@@ -236,13 +236,11 @@ const config: VerifyConfig = {
     format: {
       globs: ["src/index.ts"],
       funnels: [],
-      containments: ["queue/queue-members", "delivery/retry-chain"],
       why: "the sorted set key SchedulerUtil.Tasks, the handlerName:taskInfo and RETRY-n:handlerName:taskInfo members and the pub/sub channel are what queued tasks persist as in Redis",
     },
     contract: {
       globs: ["src/index.ts", "package.json"],
       funnels: [],
-      containments: [],
       why: "the seven exports are what every module scheduling work imports",
     },
     outbound: null,
@@ -250,7 +248,6 @@ const config: VerifyConfig = {
     publish: {
       globs: ["package.json", ".release-it.json", "changelogen.config.json", ".github/workflows/release.yml"],
       funnels: [],
-      containments: [],
       why: "the package name and release workflow claim @antelopejs/interface-redis-scheduler on npm",
     },
   },
