@@ -2,14 +2,20 @@
 /**
  * Model-checks task delivery of @antelopejs/interface-redis-scheduler with
  * TLC through the shared runner of @antelopejs/tooling-configs:
- * SchedulerDelivery.tla with one listener, then with two.
+ * SchedulerDelivery.tla with one listener, with two, and with two listeners
+ * claiming a rescheduled task (Claim). Then it runs split-take.mjs, which
+ * checks that the take from before #26 still breaks the claim rules. Its
+ * lines print behind `split take:`, except a rule that changed, which prints
+ * as the runner wrote it with `[split take]` after it, so a reader of the
+ * output names that rule.
  *
  * With no argument it runs the CI configuration of each (`<config>.ci.cfg`);
- * with `--full` it runs the full one (`<config>.cfg`). Exits 0 when both
- * match the record in SKILL.md, 1 when a rule changed, and 2 when TLC could
- * not run. The runner exits on the first configuration that changed, so a
- * change with one listener skips the two-listener run.
+ * with `--full` it runs the full one (`<config>.cfg`). Exits 0 when every
+ * configuration matches the record in SKILL.md, 1 when a rule changed, and 2
+ * when TLC could not run. The runner exits on the first configuration that
+ * changed, so a change with one listener skips the later runs.
  */
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkSpec, EXIT } from "@antelopejs/tooling-configs/formal";
@@ -25,6 +31,10 @@ const CONFIGS = {
   TwoListeners: {
     ci: {},
     full: { NoOverlapOnInstance: 16, NoLostTask: 25 },
+  },
+  Claim: {
+    ci: { NoOverlapOnInstance: 17 },
+    full: { NoOverlapOnInstance: 17 },
   },
 };
 
@@ -43,3 +53,9 @@ for (const [config, findings] of Object.entries(CONFIGS)) {
     findings: findings[mode],
   });
 }
+
+const splitTake = spawnSync(process.execPath, [path.join(dir, "split-take.mjs")], { encoding: "utf8" });
+for (const line of `${splitTake.stdout}${splitTake.stderr}`.split("\n").filter(Boolean)) {
+  console.log(/^(?:BROKEN|CHANGED|HOLDS) /.test(line) ? `${line} [split take]` : `split take: ${line}`);
+}
+process.exit(splitTake.status ?? EXIT.tool);

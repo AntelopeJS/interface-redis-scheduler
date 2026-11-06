@@ -41,7 +41,7 @@ function listener(v, l) {
   if (busy > 1) return `Running ${busy} handlers at once`;
   if (busy === 1) return "Running a handler";
   const kinds = Object.values(v.fifo[l]).map((c) => c.k);
-  if (kinds.some((k) => k === "take" || k === "retry")) return "Taking due tasks";
+  if (kinds.some((k) => k === "take" || k === "zrem" || k === "retry")) return "Taking due tasks";
   if (kinds.length > 0) return "Refreshing the timer";
   return v.timer[l] >= 0 ? "Waiting, timer armed" : "Waiting, no timer";
 }
@@ -50,6 +50,7 @@ function listener(v, l) {
 function app(v) {
   const ops = v.cops.map((c) => c.op);
   if (ops.includes("zrem")) return "Calling removeTask";
+  if (ops.includes("rezadd") || ops.includes("republish")) return "Rescheduling a task";
   if (ops.includes("zadd") || ops.includes("publish")) return "Calling addTask";
   return "Idle";
 }
@@ -70,6 +71,8 @@ export function state(v) {
 const STEPS = new Map([
   ["AddTaskCall", "the app calls addTask"],
   ["AddTaskZadd", "Redis stores the task"],
+  ["RescheduleCall", "the app calls addTask again, later"],
+  ["RescheduleZadd", "Redis stores the new due time"],
   ["Publish", "Redis publishes update"],
   ["NotifyUpdate", "the listener gets update"],
   ["RemoveTaskCall", "the app calls removeTask"],
@@ -77,6 +80,7 @@ const STEPS = new Map([
   ["ZrangeReply", "Redis names the first task"],
   ["TimerFires", "the timer fires"],
   ["TakeReply", "Redis hands over the due tasks"],
+  ["ZremReply", "Redis deletes the tasks the batch read"],
   ["RetryZaddReply", "Redis stores the retry"],
   ["HandlerReturns", "a handler returns"],
   ["HandlerThrows", "a handler throws"],
