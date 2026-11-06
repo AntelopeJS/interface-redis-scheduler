@@ -36,7 +36,7 @@ Both modes then check `SplitTake.cfg` (776,559 states). The times are one run ea
 - Exit 1 means a rule changed. `BROKEN` names a rule that held and now breaks. `CHANGED` names a finding whose shortest counterexample changed length. `HOLDS` names a finding that no longer breaks. The script keeps TLC's output in a temporary folder and prints its path. The run stops at the first configuration that changed, so a change with one listener skips the two-listener run.
 - Exit 2 means TLC or Java could not run, or the arguments were wrong.
 
-The lines that name a changed rule match `^(?:BROKEN|CHANGED|HOLDS) +(\w+)`. A rule that still holds prints as lowercase `holds`. Every line of the split-take run starts with `split take: ` and matches neither pattern: its findings are breaks the check requires, not findings about `src/index.ts`.
+The lines that name a changed rule match `^(?:BROKEN|CHANGED|HOLDS) +(\w+)`. A rule that still holds prints as lowercase `holds`. The split-take run prefixes its lines with `split take: `, so its required breaks never read as findings about `src/index.ts`; a changed rule there prints unprefixed, tagged `[split take]`.
 
 ## When to run it
 
@@ -55,7 +55,7 @@ A schedule is one write of a member: the pair of the member and the score that `
 | `NoOverlapOnInstance` | One listener runs one task handler at a time, as `locked` intends ("Flag to prevent concurrent task execution", index.ts:200-201). | Handlers that assume they run alone race on shared state, and a slow handler no longer holds back the next task. | finding F1 (14, 14) | holds, finding F1 (16) | finding F1 (17, 17) |
 | `NoLostTask` | Once nothing more can happen, nothing is left queued, and every task the app added and did not remove reached its handler or used up its retries. | A scheduled task never runs. | finding F2 (7, 8) | holds, finding F2 (25) | holds |
 
-`TypeOK` holds too. Without reschedules, `AttemptsBounded` and `RetriedBeforeGivingUp` together say a task given up ran exactly `MaxRetries + 1` times. `NoLostTask` is the liveness rule "every added task is eventually delivered" stated as an invariant: the shared runner checks invariants only, the model has no cycle, and under weak fairness every behaviour ends in a state where no step is enabled (`Quiescent`), so the rule asks for delivery in those states. A scratch run on the one-listener CI bounds confirmed both halves with `Spec /\ WF_vars(Busy)`: `<>Quiescent` holds (36,342 states), and `<>[]Delivered` breaks through the same race as F2. The numbers in brackets are the states of TLC's shortest counterexample, which `check.mjs` records per configuration.
+`TypeOK` holds too. Without reschedules, `AttemptsBounded` and `RetriedBeforeGivingUp` together say a task given up ran exactly `MaxRetries + 1` times. `NoLostTask` is the liveness rule "every added task is eventually delivered" stated as an invariant: the shared runner checks invariants only, the model has no cycle, and under weak fairness every behaviour ends in a state where no step is enabled (`Quiescent`), so the rule asks for delivery in those states. A scratch run on the one-listener CI bounds confirmed both halves with `Spec /\ WF_vars(Busy)`: `<>Quiescent` holds (38,154 states at `acfb127`), and `<>[]Delivered` breaks through the same race as F2. The numbers in brackets are the states of TLC's shortest counterexample, which `check.mjs` records per configuration.
 
 ## The concurrent claim
 
@@ -130,10 +130,10 @@ On a scratch copy of this folder (with `node_modules` reachable, for example a s
 | --- | --- | --- |
 | `drop-retry`: a handler that throws is never queued again (index.ts:266): `HandlerThrows` always gives up | `BROKEN RetriedBeforeGivingUp: Initial -> Tick -> ZrangeReply -> ZscoreReply -> TimerFires -> TakeReply -> HandlerThrows` | `BROKEN RetriedBeforeGivingUp`, 7 states |
 | `retry-once-more`: `retryCount <= MaxRetries` (line 266): `IF n <= MaxRetries`, and `Members` reaches `MaxRetries + 1` | `BROKEN AttemptsBounded`, 20 states | same |
-| `drop-publish`: `addTask` publishes no `update` (lines 163-165): `AddTaskZadd` sends no publish | `HOLDS NoOverlapOnInstance` (947 states) | `HOLDS NoOverlapOnInstance` (11,478 states) |
+| `drop-publish`: `addTask` publishes no `update` (lines 163-165): `AddTaskZadd` sends no publish | `HOLDS NoOverlapOnInstance` (1,001 states) | `HOLDS NoOverlapOnInstance` (11,478 states) |
 | `never-unlock`: `runTasks` never clears `locked` (line 276), so its closing `updateTimer` returns at once: `NextMember` keeps `locked` and sends no `ZRANGE` | one listener unchanged; two listeners `BROKEN NoLostTask`, 12 states | two listeners `CHANGED NoLostTask: 23 states (recorded 25)` |
 | `crash-after-take`, no code change: a listener dies while a handler runs and restarts with `enableListener`: a new `Crash` action | one listener unchanged; two listeners `BROKEN NoLostTask`, 11 states | two listeners `CHANGED NoLostTask: 23 states (recorded 25)` |
 | Fix candidate `fix-lock-guards`: the timer callback and the due branch of `updateTimer` skip `runTasks` while `locked` (lines 222-223, 229) | `HOLDS NoOverlapOnInstance` (18,866 states) | `HOLDS NoOverlapOnInstance` (989,683 states) |
-| Fix candidate `fix-refresh-again`: `updateTimer` reads the first member again when `ZSCORE` answers no score (lines 218-220) | `HOLDS NoLostTask` (39,743 states) | `HOLDS NoLostTask` (3,520,064 states) |
+| Fix candidate `fix-refresh-again`: `updateTimer` reads the first member again when `ZSCORE` answers no score (lines 218-220) | `HOLDS NoLostTask` (41,657 states) | `HOLDS NoLostTask` (3,520,064 states) |
 
-Every scratch run exited 1. With the edits dropped, both configurations exit 0. The CI runs of `drop-retry` and `retry-once-more` were repeated at `acfb127`, after the model gained reschedules; the other rows ran at `db09714`. The split take, once a scratch row, is now `SplitTake.cfg`.
+Every scratch run exited 1. With the edits dropped, both configurations exit 0. At `acfb127`, after the model gained reschedules and its schedule ledger, the CI runs of `drop-retry`, `retry-once-more`, `drop-publish` and `fix-refresh-again` were repeated. The other cells date from `db09714`; their counts can be lower today. The split take, once a scratch row, is now `SplitTake.cfg`.
