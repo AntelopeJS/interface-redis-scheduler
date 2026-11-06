@@ -52,7 +52,7 @@ Each step writes `<run>/evidence/<feature>/<journey>/<NN-step>/` with `command.t
 pnpm exec antelopejs-verify clean <run>
 ```
 
-`clean` stops what the run started, by recorded PID and container name, and removes everything but `evidence/` and `run.json`. Run it after every run, failed ones included.
+Each journey deletes its scratch folder and `HOME`, its install included, when it ends: passed, failed or interrupted. Only its evidence stays. `clean` stops what the run started, by recorded PID and container name, and removes everything but `evidence/` and `run.json`. Run it after every run, failed ones included.
 
 ## The repository's own layer
 
@@ -121,5 +121,5 @@ The skill is not Trusted yet. It becomes Trusted when it passes a shadow run of 
 
 - A function the consumer awaits forever, such as a getter no provider resolved, fails after 15 seconds with a `Timeout` value.
 - `minor-bump` needs the npm registry. Without it the journey is not verified, never passed.
-- Runs live under the system temp folder (`TMPDIR`), and the shared caches under `~/.cache/antelopejs-verify`.
+- Runs live under the system temp folder (`TMPDIR`), and the shared caches under `~/.cache/antelopejs-verify`. `new` deletes every run no command touched for 7 days, unless a process it recorded is still alive.
 - A repository that outgrows this skill runs `antelopejs-sync --verify custom` and keeps its own `.agents/skills/verify-<repo>/`.
