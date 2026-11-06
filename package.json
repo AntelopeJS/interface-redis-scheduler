@@ -59,10 +59,10 @@
     "ioredis": "^5.10.1"
   },
   "devDependencies": {
-    "@antelopejs/core": "^1.16.0",
+    "@antelopejs/core": "^1.21.0",
     "@antelopejs/interface-core": "^0.2.4",
     "@antelopejs/interface-redis": "^0.0.9",
-    "@antelopejs/tooling-configs": "^0.3.1",
+    "@antelopejs/tooling-configs": "^0.3.3",
     "@types/chai": "^4.3.20",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.19.15",
