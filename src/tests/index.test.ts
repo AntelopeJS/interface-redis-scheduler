@@ -7,6 +7,7 @@ import {
   removeTask,
   runTasks,
   setHandler,
+  updateTimer,
 } from "../index";
 
 const RedisKey = "SchedulerUtil.Tasks";
@@ -246,6 +247,26 @@ function isMockClient<T extends object>(
   );
 }
 
+describe("Redis Scheduler - timer", () => {
+  it("should not keep the process alive while waiting for the next task", async () => {
+    await cleanupRedis();
+    const fired = new Promise<void>((resolve) => {
+      setHandler("test-timer-handle", () => resolve());
+    });
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() + 50, "test-timer-handle:soon");
+    await runTasks();
+    await fired;
+
+    const timeoutsBefore = liveTimeouts();
+    await client.zadd(RedisKey, Date.now() + 60_000, "test-timer-handle:later");
+    await updateTimer();
+    expect(liveTimeouts()).to.equal(timeoutsBefore);
+
+    await cleanupRedis();
+  });
+});
+
 describe("Redis Scheduler - retry logic", () => {
   it("should retry failed tasks up to 3 times", async () => {
     await cleanupRedis();
@@ -278,4 +299,10 @@ async function rejectionMessage(
     return err instanceof Error ? err.message : undefined;
   }
   return undefined;
+}
+
+function liveTimeouts(): number {
+  return process
+    .getActiveResourcesInfo()
+    .filter((resource) => resource === "Timeout").length;
 }
