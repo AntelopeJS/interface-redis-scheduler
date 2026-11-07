@@ -27,20 +27,39 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - id: pass
+        uses: actions/cache/restore@v4
+        with:
+          path: .formal-pass
+          key: formal-pass-${{ hashFiles('.agents/skills/formal-scheduler-delivery/**', 'package.json', 'pnpm-lock.yaml', '.nvmrc', '.github/workflows/ci.yml') }}
+          lookup-only: true
+      - if: steps.pass.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - run: corepack enable
-      - run: pnpm install --frozen-lockfile --ignore-scripts
-      - uses: actions/setup-java@v4
+      - if: steps.pass.outputs.cache-hit != 'true'
+        run: corepack enable
+      - if: steps.pass.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - if: steps.pass.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
-      - uses: actions/cache@v4
+      - if: steps.pass.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
         with:
           path: ~/.cache/antelopejs-formal
           key: tla2tools-1.7.4
-      - run: node .agents/skills/formal-scheduler-delivery/check.mjs
+      - if: steps.pass.outputs.cache-hit != 'true'
+        run: node .agents/skills/formal-scheduler-delivery/check.mjs
+      - if: steps.pass.outputs.cache-hit != 'true'
+        run: mkdir .formal-pass && git rev-parse HEAD > .formal-pass/commit
+      - if: steps.pass.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .formal-pass
+          key: ${{ steps.pass.outputs.cache-primary-key }}
 
   checks:
     if: always()
