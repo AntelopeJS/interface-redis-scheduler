@@ -93,7 +93,9 @@ await disableListener();
   5 seconds after the attempt that failed, and its member becomes
   `RETRY-{n}:handlerName:taskInfo`. After the third retry fails, the task is
   discarded. Every failure is logged through interface-core `Logging.Error`.
-- The listener's timer waits at most 24 hours before it checks again.
+- The listener's timer waits at most 24 hours before it checks again. It does
+  not keep the process alive on its own: a process with nothing else pending
+  exits, and its queued tasks stay in Redis for the next listener.
 - `enableListener` duplicates the shared Redis client into a dedicated
   subscriber connection. `disableListener` quits that subscriber.
 - `disableListener` only quits the subscriber connection. It does not clear

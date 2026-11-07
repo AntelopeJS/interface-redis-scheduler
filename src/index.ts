@@ -205,6 +205,8 @@ let timer: NodeJS.Timeout;
 /**
  * Updates the timer for the next task execution
  * This is called internally whenever the task schedule changes
+ * The timer does not keep the process alive on its own; the task stays
+ * queued in Redis when the process exits first.
  */
 export async function updateTimer() {
   if (locked) {
@@ -228,7 +230,7 @@ export async function updateTimer() {
       timer = setTimeout(
         () => void runTasks(),
         Math.min(score - Date.now(), MaxTimerDelayMs),
-      );
+      ).unref();
     }
   }
 }
