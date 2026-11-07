@@ -40,7 +40,7 @@ The lines that name a changed rule match `^(?:BROKEN|CHANGED|HOLDS) +(\w+)`. A r
 
 ## When to run it
 
-Run `--full` when a change touches `src/index.ts` or this folder. A changed rule (exit 1) makes the Verdict FAIL. The recorded findings fail it only when the diff changes what `src/index.ts` does, which `antelopejs-verify formal` decides by comparing its JavaScript statements on the base and on HEAD (`verify-interface` verdict rule 5; the entry is `formal-scheduler-delivery` in `.agents/skills/verify-interface/verify.config.ts`). The CI configuration catches every scratch break in the last section, so it is the one CI runs on every push (job `formal-scheduler-delivery`).
+Run `--full` when a change touches `src/index.ts` or this folder. A changed rule (exit 1) makes the Verdict FAIL. The recorded findings fail it only when the diff changes what `src/index.ts` does, which `antelopejs-verify formal` decides by comparing its JavaScript statements on the base and on HEAD (`verify-interface` verdict rule 5; the entry is `formal-scheduler-delivery` in `.agents/skills/verify-interface/verify.config.ts`). The CI configuration catches every scratch break in the last section, so it is the one CI runs (job `formal-scheduler-delivery`). TLC reads only this folder, so the job records a pass in the Actions cache under a key hashed from this folder, `package.json` and `pnpm-lock.yaml` (the install and the runner's version), `.nvmrc` and `ci.yml`, and a later push with the same key reuses that pass instead of running TLC again.
 
 ## The rules
 
