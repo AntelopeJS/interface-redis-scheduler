@@ -188,34 +188,8 @@ describe("Redis Scheduler - runTasks", () => {
     const client = await GetClient();
     const due = Date.now() - 1000;
     await client.zadd(RedisKey, due, "test-read-failure:renewal");
-    if (!isMockClient(client))
-      throw new Error("The test project must use the Redis mock");
-    const mock = client;
-    const store = mock.data;
-    let failed = false;
-    const failFirstRead = (key: string) => {
-      if (!failed && key === RedisKey) {
-        failed = true;
-        throw new Error("ERR injected read failure");
-      }
-    };
-    mock.data = {
-      ...store,
-      get: (key) => (failFirstRead(key), store.get(key)),
-      has: (key) => (failFirstRead(key), store.has(key)),
-    };
 
-    let rejected = false;
-    try {
-      await runTasks();
-    } catch {
-      rejected = true;
-    } finally {
-      mock.data = store;
-    }
-
-    expect(failed).to.equal(true);
-    expect(rejected).to.equal(true);
+    expect(await runTasksWithFailedRead()).to.equal(true);
     expect(results).to.deep.equal([]);
     expect(await client.zscore(RedisKey, "test-read-failure:renewal")).to.equal(
       String(due),
@@ -224,6 +198,58 @@ describe("Redis Scheduler - runTasks", () => {
     await cleanupRedis();
   });
 });
+
+describe("Redis Scheduler - runTasks failure", () => {
+  it("should run due tasks on the next timer refresh after a failed batch", async () => {
+    await cleanupRedis();
+    const results: string[] = [];
+    setHandler("test-unlock", (taskInfo: string) => {
+      results.push(taskInfo);
+    });
+
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() - 1000, "test-unlock:after-failure");
+
+    expect(await runTasksWithFailedRead()).to.equal(true);
+    await updateTimer();
+
+    expect(results).to.deep.equal(["after-failure"]);
+    expect(await client.zrange(RedisKey, 0, -1)).to.deep.equal([]);
+
+    await cleanupRedis();
+  });
+});
+
+/**
+ * Runs `runTasks()` while the mock fails its first read of the task set.
+ * @returns whether the read failed and `runTasks()` rejected
+ */
+async function runTasksWithFailedRead(): Promise<boolean> {
+  const client = await GetClient();
+  if (!isMockClient(client))
+    throw new Error("The test project must use the Redis mock");
+  const store = client.data;
+  let failed = false;
+  const failFirstRead = (key: string) => {
+    if (!failed && key === RedisKey) {
+      failed = true;
+      throw new Error("ERR injected read failure");
+    }
+  };
+  client.data = {
+    ...store,
+    get: (key) => (failFirstRead(key), store.get(key)),
+    has: (key) => (failFirstRead(key), store.has(key)),
+  };
+  try {
+    await runTasks();
+    return false;
+  } catch {
+    return failed;
+  } finally {
+    client.data = store;
+  }
+}
 
 interface MockStore {
   get(key: string): ReadonlyMap<string, string> | undefined;
