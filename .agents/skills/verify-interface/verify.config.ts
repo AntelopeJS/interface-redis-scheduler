@@ -62,27 +62,35 @@ function answersPong(port: number): Promise<boolean> {
   });
 }
 
-/** Starts a disposable Redis in Docker on a free loopback port, hands its URL to `use`, and removes the container whatever happens: the interface kind starts no services of its own. */
-async function withRedis(context: JourneyContext, use: (url: string, name: string) => Promise<void>): Promise<void> {
+/** True once the published port answers `+PONG`, false after `READY_POLLS` polls without it. */
+async function answersPongWithin(port: number): Promise<boolean> {
+  for (let poll = 0; poll < READY_POLLS; poll += 1) {
+    if (await answersPong(port)) return true;
+    await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+  }
+  return false;
+}
+
+/**
+ * Starts a disposable Redis in Docker on a free loopback port, hands its URL to `use`, and removes the container whatever happens: the interface kind starts no services of its own.
+ * `use` resolves to whether its checks passed. A published port that never answers `PONG`, or no longer answers it after a failed check, ends the journey as not verified: the container belongs to the journey, not the product.
+ */
+async function withRedis(context: JourneyContext, use: (url: string, name: string) => Promise<boolean>): Promise<void> {
   const name = `${process.env.VERIFY_CONTAINER_PREFIX ?? "verify"}-interface-redis-scheduler-redis-${Date.now().toString(36)}`;
   const started = await context.command("start redis", "docker", ["run", "-d", "--name", name, "-p", "127.0.0.1::6379", "redis:7-alpine"], {
     timeoutMs: 120_000,
   });
   try {
-    context.expect(started.folder, [{ name: "redis container started", pass: started.exitCode === 0, detail: started.stderr.slice(-300) }], {
-      critical: true,
-    });
+    if (started.exitCode !== 0) context.notVerified(`docker could not start redis container ${name}: ${started.stderr.slice(-300)}`);
     const mapped = await context.command("redis port", "docker", ["port", name, "6379/tcp"]);
     const port = /:(\d+)$/m.exec(mapped.stdout)?.[1];
-    let ready = false;
-    for (let poll = 0; poll < READY_POLLS && !ready && port !== undefined; poll += 1) {
-      ready = await answersPong(Number(port));
-      if (!ready) await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+    if (port === undefined) context.notVerified(`docker published no loopback port for redis container ${name}: ${mapped.stdout.trim()}`);
+    const address = `127.0.0.1:${port}`;
+    if (!(await answersPongWithin(Number(port)))) context.notVerified(`redis container ${name} never answered PONG on its published port ${address}`);
+    const passed = await use(`redis://${address}`, name);
+    if (!passed && !(await answersPongWithin(Number(port)))) {
+      context.notVerified(`a check failed and redis container ${name} no longer answers PONG on its published port ${address}`);
     }
-    context.expect(mapped.folder, [{ name: "redis answered PONG on a published port", pass: ready && port !== undefined, detail: mapped.stdout }], {
-      critical: true,
-    });
-    await use(`redis://127.0.0.1:${port}`, name);
   } finally {
     await context.command("remove redis", "docker", ["rm", "-f", name]);
   }
@@ -102,7 +110,7 @@ function scenario({ title, body, printed, stored, seed = [] }: Scenario): Journe
         const file = `${context.work}/scenario.js`;
         context.edit("write the scenario", file, `${SCENARIO_PRELUDE}\nasync function main() {\n${body}\n}\n${SCENARIO_TAIL}`);
         const ran = await context.command("run the scenario", "node", [file, `${context.repo}/dist/index.js`, url], { timeoutMs: 60_000 });
-        context.expect(ran.folder, [
+        const ranCleanly = context.expect(ran.folder, [
           { name: "the scenario ended cleanly", pass: ran.exitCode === 0, detail: ran.stderr.slice(-300) },
           equal("the scenario printed what docs/1.introduction.md promises", ran.stdout.trim().split("\n").at(-1) ?? "", printed),
         ]);
@@ -116,7 +124,7 @@ function scenario({ title, body, printed, stored, seed = [] }: Scenario): Journe
           "-1",
           "withscores",
         ]);
-        context.expect(read.folder, [equal("Redis holds the queue the scenario left", read.stdout.trim(), stored)]);
+        return context.expect(read.folder, [equal("Redis holds the queue the scenario left", read.stdout.trim(), stored)]) && ranCleanly;
       });
     },
   };
