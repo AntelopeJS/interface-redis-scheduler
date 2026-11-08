@@ -73,7 +73,7 @@ async function answersPongWithin(port: number): Promise<boolean> {
 
 /**
  * Starts a disposable Redis in Docker on a free loopback port, hands its URL to `use`, and removes the container whatever happens: the interface kind starts no services of its own.
- * `use` resolves to whether its checks passed. A published port that never answers `PONG`, or no longer answers it after a failed check, ends the journey as not verified: the container belongs to the journey, not the product.
+ * `use` resolves to whether its checks passed. A published port that never answers `PONG`, or no longer answers it after a failed or aborted check, ends the journey as not verified: the container belongs to the journey, not the product.
  */
 async function withRedis(context: JourneyContext, use: (url: string, name: string) => Promise<boolean>): Promise<void> {
   const name = `${process.env.VERIFY_CONTAINER_PREFIX ?? "verify"}-interface-redis-scheduler-redis-${Date.now().toString(36)}`;
@@ -87,9 +87,13 @@ async function withRedis(context: JourneyContext, use: (url: string, name: strin
     if (port === undefined) context.notVerified(`docker published no loopback port for redis container ${name}: ${mapped.stdout.trim()}`);
     const address = `127.0.0.1:${port}`;
     if (!(await answersPongWithin(Number(port)))) context.notVerified(`redis container ${name} never answered PONG on its published port ${address}`);
-    const passed = await use(`redis://${address}`, name);
-    if (!passed && !(await answersPongWithin(Number(port)))) {
-      context.notVerified(`a check failed and redis container ${name} no longer answers PONG on its published port ${address}`);
+    let passed = false;
+    try {
+      passed = await use(`redis://${address}`, name);
+    } finally {
+      if (!passed && !(await answersPongWithin(Number(port)))) {
+        context.notVerified(`a check failed and redis container ${name} no longer answers PONG on its published port ${address}`);
+      }
     }
   } finally {
     await context.command("remove redis", "docker", ["rm", "-f", name]);
