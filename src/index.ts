@@ -214,24 +214,21 @@ export async function updateTimer() {
   }
 
   const client = await GetClient();
-  const taskInfo = (await client.zrange(RedisKey, 0, 0))[0];
-  if (taskInfo) {
-    const scoreValue = await client.zscore(RedisKey, taskInfo);
-    if (!scoreValue) {
-      return;
+  const [, scoreValue] = await client.zrange(RedisKey, 0, 0, "WITHSCORES");
+  if (scoreValue === undefined) {
+    return;
+  }
+  const score = Number(scoreValue);
+  if (score < Date.now()) {
+    await runTasks();
+  } else {
+    if (timer) {
+      clearTimeout(timer);
     }
-    const score = Number(scoreValue);
-    if (score < Date.now()) {
-      await runTasks();
-    } else {
-      if (timer) {
-        clearTimeout(timer);
-      }
-      timer = setTimeout(
-        () => void runTasks(),
-        Math.min(score - Date.now(), MaxTimerDelayMs),
-      ).unref();
-    }
+    timer = setTimeout(
+      () => void runTasks(),
+      Math.min(score - Date.now(), MaxTimerDelayMs),
+    ).unref();
   }
 }
 
