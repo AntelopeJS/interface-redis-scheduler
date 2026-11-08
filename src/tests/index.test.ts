@@ -265,7 +265,61 @@ describe("Redis Scheduler - timer", () => {
 
     await cleanupRedis();
   });
+  it("should still run the next task when the first is removed while the timer refreshes", async () => {
+    await cleanupRedis();
+    const ran = new Promise<string>((resolve) => {
+      setHandler("test-remove-race", resolve);
+    });
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() + 50, "test-remove-race:first");
+    await client.zadd(RedisKey, Date.now() + 100, "test-remove-race:second");
+
+    const zrange = client.zrange.bind(client);
+    let removed = false;
+    Object.assign(client, {
+      zrange: async (
+        key: string,
+        start: number,
+        stop: number,
+        withScores?: "WITHSCORES",
+      ) => {
+        const reply = withScores
+          ? await zrange(key, start, stop, withScores)
+          : await zrange(key, start, stop);
+        if (!removed && key === RedisKey) {
+          removed = true;
+          await removeTask("test-remove-race", "first");
+        }
+        return reply;
+      },
+    });
+    try {
+      await updateTimer();
+    } finally {
+      Object.assign(client, { zrange });
+    }
+
+    expect(removed).to.equal(true);
+    expect(await withinMs(ran, 1000)).to.equal("second");
+
+    await cleanupRedis();
+  });
 });
+
+async function withinMs<T>(
+  promise: Promise<T>,
+  ms: number,
+): Promise<T | "timed out"> {
+  let timeout: NodeJS.Timeout | undefined;
+  const expired = new Promise<"timed out">((resolve) => {
+    timeout = setTimeout(() => resolve("timed out"), ms);
+  });
+  try {
+    return await Promise.race([promise, expired]);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 describe("Redis Scheduler - retry logic", () => {
   it("should retry failed tasks up to 3 times", async () => {
