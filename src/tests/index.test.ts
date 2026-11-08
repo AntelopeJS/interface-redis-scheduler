@@ -288,6 +288,45 @@ describe("Redis Scheduler - retry logic", () => {
 
     await cleanupRedis();
   });
+  it("should run the rest of the batch when a retry write fails", async () => {
+    await cleanupRedis();
+    const calls: string[] = [];
+    setHandler("test-retry-write", (taskInfo: string) => {
+      calls.push(taskInfo);
+      throw new Error("intentional failure");
+    });
+
+    const client = await GetClient();
+    await client.zadd(RedisKey, Date.now() - 2000, "test-retry-write:p");
+    await client.zadd(RedisKey, Date.now() - 1000, "test-retry-write:q");
+    const zadd = client.zadd.bind(client);
+    let writeFailures = 0;
+    Reflect.set(
+      client,
+      "zadd",
+      (key: string, score: number, member: string) => {
+        if (writeFailures === 0) {
+          writeFailures++;
+          return Promise.reject(new Error("READONLY injected write failure"));
+        }
+        return zadd(key, score, member);
+      },
+    );
+
+    try {
+      await runTasks();
+    } finally {
+      Reflect.set(client, "zadd", zadd);
+    }
+
+    expect(writeFailures).to.equal(1);
+    expect(calls).to.deep.equal(["p", "q"]);
+    expect(await client.zrange(RedisKey, 0, -1)).to.deep.equal([
+      "RETRY-1:test-retry-write:q",
+    ]);
+
+    await cleanupRedis();
+  });
 });
 
 async function rejectionMessage(

@@ -92,7 +92,9 @@ await disableListener();
 - A handler that throws or rejects is retried up to 3 times. Each retry is due
   5 seconds after the attempt that failed, and its member becomes
   `RETRY-{n}:handlerName:taskInfo`. After the third retry fails, the task is
-  discarded. Every failure is logged through interface-core `Logging.Error`.
+  discarded. When Redis rejects the retry write, that task gets no retry and
+  the batch runs its next task. Every failure is logged through
+  interface-core `Logging.Error`.
 - The listener's timer waits at most 24 hours before it checks again. It does
   not keep the process alive on its own: a process with nothing else pending
   exits, and its queued tasks stay in Redis for the next listener.
