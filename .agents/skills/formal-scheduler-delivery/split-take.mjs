@@ -16,5 +16,5 @@ await checkSpec({
   dir: path.dirname(fileURLToPath(import.meta.url)),
   spec: "SchedulerDelivery",
   config: "SplitTake",
-  findings: { HandOffOnce: 10, NoDroppedTask: 8, AttemptsBounded: 10, NoOverlapOnInstance: 14 },
+  findings: { HandOffOnce: 10, NoDroppedTask: 8, AttemptsBounded: 10 },
 });

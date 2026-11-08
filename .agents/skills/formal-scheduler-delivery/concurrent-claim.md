@@ -6,7 +6,6 @@ Before #26, `runTasks` read the due members with `ZRANGEBYSCORE`, then deleted t
 
 - `NoDroppedTask`, 8 states, the bug #26 fixed: the `ZRANGEBYSCORE` reads task 1, the app's reschedule moves it later, and the `ZREM` deletes it with its new score.
 - `HandOffOnce` and `AttemptsBounded`, 10 states: both listeners read task 1 before either `ZREM`, and both run its handler.
-- `NoOverlapOnInstance`, 14 states: F1.
 
 So a model edit that stops catching a revert of #26 fails the check. The model cannot see `src/index.ts`, so a code revert alone leaves this check passing. Two other gates catch it. The unit test `should keep a task rescheduled while due tasks are collected` fails on it, and `antelopejs-verify formal` sees the covered behaviour change. Bringing the model back in line with that code means `TakeScript = FALSE` in the code configurations, and then the claim rules break.
 

@@ -114,6 +114,69 @@ describe("Redis Scheduler - enableListener / disableListener", () => {
   });
 });
 
+describe("Redis Scheduler - one batch at a time", () => {
+  it("should not start an armed timer's batch while another batch runs", async () => {
+    await cleanupRedis();
+    const handler = overlapHandler("test-overlap-timer", { slow: 600 });
+
+    await addTask("test-overlap-timer", Date.now() + 200, "timed");
+    await updateTimer();
+    await addTask("test-overlap-timer", Date.now() - 1, "slow");
+    await updateTimer();
+
+    expect(handler.started).to.deep.equal(["slow", "timed"]);
+    expect(handler.most).to.equal(1);
+
+    await cleanupRedis();
+  });
+  it("should not start a batch from a direct runTasks call while another batch runs", async () => {
+    await cleanupRedis();
+    const handler = overlapHandler("test-overlap-direct", { first: 100 });
+    const client = await GetClient();
+
+    await client.zadd(RedisKey, Date.now() - 1, "test-overlap-direct:first");
+    const first = runTasks();
+    await handler.firstStart;
+    await client.zadd(RedisKey, Date.now() - 1, "test-overlap-direct:second");
+    await runTasks();
+    await first;
+
+    expect(handler.started).to.deep.equal(["first", "second"]);
+    expect(handler.most).to.equal(1);
+
+    await cleanupRedis();
+  });
+});
+
+/**
+ * Registers a handler that records the order tasks start in and the most
+ * handlers running at once; `firstStart` resolves when a handler first starts.
+ * @param delays - how long the task with each info runs, in milliseconds
+ */
+function overlapHandler(
+  name: string,
+  delays: Readonly<Record<string, number>>,
+) {
+  let running = 0;
+  let markStarted = () => {};
+  const seen = {
+    started: new Array<string>(),
+    most: 0,
+    firstStart: new Promise<void>((resolve) => {
+      markStarted = resolve;
+    }),
+  };
+  setHandler(name, async (taskInfo: string) => {
+    running++;
+    seen.most = Math.max(seen.most, running);
+    seen.started.push(taskInfo);
+    markStarted();
+    await delay(Object.hasOwn(delays, taskInfo) ? delays[taskInfo] : 0);
+    running--;
+  });
+  return seen;
+}
+
 describe("Redis Scheduler - runTasks", () => {
   it("should execute due tasks", async () => {
     await cleanupRedis();
@@ -418,6 +481,10 @@ async function rejectionMessage(
     return err instanceof Error ? err.message : undefined;
   }
   return undefined;
+}
+
+async function delay(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function liveTimeouts(): number {

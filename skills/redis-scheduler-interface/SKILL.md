@@ -85,6 +85,10 @@ await disableListener();
   process stops during the run, the task is lost. There is no exactly-once
   execution.
 - A batch runs its handlers one after another, earliest due time first.
+- One process runs one batch at a time, so its handlers never overlap. A
+  `runTasks()` call while a batch runs returns at once; that batch picks up
+  the tasks that fell due meanwhile when it resolves. A batch that rejects
+  arms no timer, so those tasks wait for the next update message.
 - `taskInfo` is a plain string. Serialize and parse it (typically JSON)
   yourself.
 - `removeTask` needs the exact original `taskInfo` string. A JSON payload with

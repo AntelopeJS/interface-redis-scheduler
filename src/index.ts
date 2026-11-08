@@ -247,8 +247,14 @@ async function takeDueTasks(client: Redis): Promise<string[]> {
  * Executes all due tasks
  * This is called internally by the timer when tasks are due for execution
  * It includes automatic retry logic for failed tasks
+ * While a batch runs in this process, it returns at once, so one listener runs
+ * one handler at a time; a batch that resolves ends with updateTimer, which
+ * runs the tasks that fell due meanwhile, and one that rejects arms no timer
  */
 export async function runTasks() {
+  if (locked) {
+    return;
+  }
   locked = true;
   try {
     await runDueTasks();
