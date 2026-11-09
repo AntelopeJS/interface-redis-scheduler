@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.0.11
+
+[compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.10...v0.0.11)
+
+### 🚀 Enhancements
+
+- **formal:** Check the concurrent due-task claim against the take before #26 ([#52](https://github.com/AntelopeJS/interface-redis-scheduler/pull/52), [#26](https://github.com/AntelopeJS/interface-redis-scheduler/issues/26))
+
+### 🩹 Fixes
+
+- Unref the scheduler timer so it never holds the process open ([#56](https://github.com/AntelopeJS/interface-redis-scheduler/pull/56))
+- **verify:** Report a Redis port that stops answering as not verified ([#62](https://github.com/AntelopeJS/interface-redis-scheduler/pull/62))
+- Keep running the batch when a retry write fails ([#59](https://github.com/AntelopeJS/interface-redis-scheduler/pull/59))
+- Release the runTasks lock when a batch throws ([#58](https://github.com/AntelopeJS/interface-redis-scheduler/pull/58))
+- Read the first task and its score in one round trip in updateTimer ([#60](https://github.com/AntelopeJS/interface-redis-scheduler/pull/60))
+- Run one task batch at a time on each listener ([#61](https://github.com/AntelopeJS/interface-redis-scheduler/pull/61))
+
+### 📖 Documentation
+
+- **readme:** Link the package to AntelopeJS and AntelopeJS DMS ([76e9d9f](https://github.com/AntelopeJS/interface-redis-scheduler/commit/76e9d9f))
+
+### 📦 Build
+
+- **deps:** Bump @antelopejs packages to the 2026-11-06 releases ([#55](https://github.com/AntelopeJS/interface-redis-scheduler/pull/55))
+- **deps:** Bump @antelopejs/tooling-configs to 0.4.0 ([#63](https://github.com/AntelopeJS/interface-redis-scheduler/pull/63))
+
+### 🏡 Chore
+
+- **verify:** Remove seeded runs from the verification skill ([#51](https://github.com/AntelopeJS/interface-redis-scheduler/pull/51))
+- **ci:** Remove the weekly mutation caller ([#53](https://github.com/AntelopeJS/interface-redis-scheduler/pull/53))
+
+### 🤖 CI
+
+- Call ci-node.yml@v1 ([#54](https://github.com/AntelopeJS/interface-redis-scheduler/pull/54))
+- Reuse a cached formal pass when the model and its runner are unchanged ([#57](https://github.com/AntelopeJS/interface-redis-scheduler/pull/57))
+- **release:** Accept an exact release version ([#64](https://github.com/AntelopeJS/interface-redis-scheduler/pull/64))
+
+### ❤️ Contributors
+
+- Antony Rizzitelli ([@Upd4ting](http://github.com/Upd4ting))
+
 ## v0.0.10
 
 [compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.9...v0.0.10)
