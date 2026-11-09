@@ -266,11 +266,13 @@ export async function runTasks() {
       if (m) {
         const retryCount = m[1] ? parseInt(m[1], 10) : 0;
         if (retryCount < MaxRetries) {
-          await client.zadd(
-            RedisKey,
-            Date.now() + RetryDelayMs,
-            `RETRY-${retryCount + 1}:${m[2]}:${m[3]}`,
-          );
+          await client
+            .zadd(
+              RedisKey,
+              Date.now() + RetryDelayMs,
+              `RETRY-${retryCount + 1}:${m[2]}:${m[3]}`,
+            )
+            .catch((writeErr: unknown) => Logging.Error(writeErr));
         }
       }
     }

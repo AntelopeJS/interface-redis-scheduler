@@ -113,7 +113,7 @@ A configuration with reschedules has no retries (`ASSUME Reschedulable = {} \/ M
 
 The model leaves out:
 
-- Redis errors and rejected commands: a take or retry `ZADD` that rejects (issues #27 and #29), and a dropped connection.
+- Redis errors and rejected commands: a take that rejects (issue #27), a retry `ZADD` that rejects (logged and skipped since #29), and a dropped connection.
 - crashes. A listener that dies after the take loses that batch, since the take already removed it: delivery is at most once, and the TSDoc promises retries only for a handler that throws. The scratch change `crash-after-take` below shows it.
 - members whose handler is not registered in the listener (index.ts:259 skips them silently), and `taskInfo` values.
 - `disableListener`, which leaves timers and batches running.
