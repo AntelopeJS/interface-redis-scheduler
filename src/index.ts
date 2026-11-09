@@ -253,6 +253,15 @@ async function takeDueTasks(client: Redis): Promise<string[]> {
  */
 export async function runTasks() {
   locked = true;
+  try {
+    await runDueTasks();
+  } finally {
+    locked = false;
+  }
+  await updateTimer();
+}
+
+async function runDueTasks() {
   const client = await GetClient();
   const tasks = await takeDueTasks(client);
   for (const task of tasks) {
@@ -277,6 +286,4 @@ export async function runTasks() {
       }
     }
   }
-  locked = false;
-  await updateTimer();
 }
