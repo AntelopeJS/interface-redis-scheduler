@@ -25,16 +25,16 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 /** The findings of each configuration, with the states in TLC's shortest counterexample, in run order. */
 const CONFIGS = {
   SchedulerDelivery: {
-    ci: { NoOverlapOnInstance: 12 },
-    full: { NoOverlapOnInstance: 12 },
+    ci: {},
+    full: {},
   },
   TwoListeners: {
     ci: {},
-    full: { NoOverlapOnInstance: 14 },
+    full: {},
   },
   Claim: {
-    ci: { NoOverlapOnInstance: 15 },
-    full: { NoOverlapOnInstance: 15 },
+    ci: {},
+    full: {},
   },
 };
 

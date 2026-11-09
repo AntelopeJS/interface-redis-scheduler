@@ -35,7 +35,7 @@ Tasks == 1..TaskCount
 
 (* <<t, 0>> is the member handler:info that addTask writes (index.ts:65-67, *)
 (* 162); <<t, n>> is the member RETRY-n:handler:info a failed attempt      *)
-(* writes (index.ts:266-270).                                             *)
+(* writes (index.ts:281-287).                                             *)
 Members == Tasks \X (0..MaxRetries)
 
 (* A schedule is a member and the score one write gave it. Every write in *)
@@ -81,7 +81,7 @@ Cont(k, m, s, rest) == [k |-> k, m |-> m, s |-> s, rest |-> rest]
 ZrangeSent == Cont("zrange", NoMember, 0, {})
 
 (* runTasks() set locked and sent the take script with Date.now()        *)
-(* (index.ts:252-254, 242).                                               *)
+(* (index.ts:255-260, 269, 242).                                         *)
 TakeSent(at) == Cont("take", NoMember, at, {})
 
 Kinds == {"zrange", "take", "zrem", "retry", "handler"}
