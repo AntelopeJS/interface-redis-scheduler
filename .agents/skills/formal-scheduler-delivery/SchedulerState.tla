@@ -28,14 +28,14 @@ CONSTANTS
   MaxRetries,    \* MaxRetries (index.ts:16)
   RetryDelay,    \* RetryDelayMs (index.ts:17), in ticks
   MaxTimerDelay, \* MaxTimerDelayMs (index.ts:18), in ticks
-  TakeScript     \* TRUE: the take is one Lua script (index.ts:236-245); FALSE: the
+  TakeScript     \* TRUE: the take is one Lua script (index.ts:235-244); FALSE: the
                  \* take before #26, ZRANGEBYSCORE then ZREM of what it read
 
 Tasks == 1..TaskCount
 
 (* <<t, 0>> is the member handler:info that addTask writes (index.ts:65-67, *)
 (* 162); <<t, n>> is the member RETRY-n:handler:info a failed attempt      *)
-(* writes (index.ts:267-271).                                             *)
+(* writes (index.ts:266-270).                                             *)
 Members == Tasks \X (0..MaxRetries)
 
 (* A schedule is a member and the score one write gave it. Every write in *)
@@ -77,14 +77,14 @@ vars == <<now, zset, cops, inbox, locked, timer, fifo, busy, addState,
 Cont(k, m, s, rest) == [k |-> k, m |-> m, s |-> s, rest |-> rest]
 
 (* updateTimer() passed `if (locked)` and sent ZRANGE key 0 0            *)
-(* (index.ts:210-215).                                                    *)
+(* (index.ts:212-217).                                                    *)
 ZrangeSent == Cont("zrange", NoMember, 0, {})
 
 (* runTasks() set locked and sent the take script with Date.now()        *)
-(* (index.ts:253-255, 243).                                               *)
+(* (index.ts:252-254, 242).                                               *)
 TakeSent(at) == Cont("take", NoMember, at, {})
 
-Kinds == {"zrange", "zscore", "take", "zrem", "retry", "handler"}
+Kinds == {"zrange", "take", "zrem", "retry", "handler"}
 Conts == [k : Kinds, m : Members \cup {NoMember}, s : Int,
           rest : SUBSET (Members \X Int)]
 

@@ -77,7 +77,6 @@ const STEPS = new Map([
   ["NotifyUpdate", "the listener gets update"],
   ["RemoveTaskCall", "the app calls removeTask"],
   ["RemoveTaskZrem", "Redis deletes the task"],
-  ["ZrangeReply", "Redis names the first task"],
   ["TimerFires", "the timer fires"],
   ["TakeReply", "Redis hands over the due tasks"],
   ["ZremReply", "Redis deletes the tasks the batch read"],
@@ -98,15 +97,15 @@ const first = (sequence) => sequence["1"];
  * @param {Vars} to
  */
 function scoreStep(from, to) {
-  const answered = Object.keys(from.fifo)
-    .map((id) => ({ before: first(from.fifo[id]), changed: JSON.stringify(from.fifo[id]) !== JSON.stringify(to.fifo[id]) }))
-    .find(({ before, changed }) => changed && before?.k === "zscore")?.before;
-  if (answered === undefined) return "Redis answers a score";
-  const key = JSON.stringify(answered.m);
-  if (!Object.hasOwn(from.zset, key)) return "Redis answers no score: the task is gone";
-  return from.zset[key] < from.now
-    ? "Redis answers its score: due, a batch starts"
-    : "Redis answers its score: not due, the timer is set";
+  const answered = Object.keys(from.fifo).some(
+    (id) => first(from.fifo[id])?.k === "zrange" && JSON.stringify(from.fifo[id]) !== JSON.stringify(to.fifo[id]),
+  );
+  if (!answered) return "Redis names the first task and its score";
+  const scores = Object.values(from.zset);
+  if (scores.length === 0) return "Redis names no task: the queue is empty";
+  return Math.min(...scores) < from.now
+    ? "Redis names the first task: due, a batch starts"
+    : "Redis names the first task: not due, the timer is set";
 }
 
 /**
@@ -117,7 +116,7 @@ function scoreStep(from, to) {
  */
 export function step(action, from, to) {
   if (action === "Settled") return null;
-  return action === "ZscoreReply" ? scoreStep(from, to) : (STEPS.get(action) ?? null);
+  return action === "ZrangeReply" ? scoreStep(from, to) : (STEPS.get(action) ?? null);
 }
 
 export const title = "Task delivery of interface-redis-scheduler";
