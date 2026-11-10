@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.0.12
+
+[compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.11...v0.0.12)
+
+### 🔥 Performance
+
+- **scheduler:** Publish an update only when addTask changes the first task or it is due ([#67](https://github.com/AntelopeJS/interface-redis-scheduler/pull/67))
+
+### 📦 Build
+
+- **deps:** Bump @antelopejs/tooling-configs to 0.5.0 ([#65](https://github.com/AntelopeJS/interface-redis-scheduler/pull/65))
+- **deps:** Bump @antelopejs/tooling-configs to 0.5.1 ([#66](https://github.com/AntelopeJS/interface-redis-scheduler/pull/66))
+
+### ❤️ Contributors
+
+- Antony Rizzitelli ([@Upd4ting](http://github.com/Upd4ting))
+
 ## v0.0.11
 
 [compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.10...v0.0.11)
