@@ -7,7 +7,7 @@
 (* A listener sends every command on the one ioredis client GetClient()    *)
 (* returns, so Redis applies them and the listener handles their replies   *)
 (* in the order it sent them (fifo). GetClient() returns a promise that is *)
-(* already resolved once enableListener() ran (index.ts:89), so the await  *)
+(* already resolved once enableListener() ran (index.ts:98), so the await  *)
 (* on it is a microtask: nothing else runs before the command after it is  *)
 (* sent, and that send is part of the step that awaited GetClient(). Each  *)
 (* other await is one step. Redis applying a command and the listener      *)
@@ -28,14 +28,14 @@ CONSTANTS
   MaxRetries,    \* MaxRetries (index.ts:16)
   RetryDelay,    \* RetryDelayMs (index.ts:17), in ticks
   MaxTimerDelay, \* MaxTimerDelayMs (index.ts:18), in ticks
-  TakeScript     \* TRUE: the take is one Lua script (index.ts:235-244); FALSE: the
+  TakeScript     \* TRUE: the take is one Lua script (index.ts:251-260); FALSE: the
                  \* take before #26, ZRANGEBYSCORE then ZREM of what it read
 
 Tasks == 1..TaskCount
 
-(* <<t, 0>> is the member handler:info that addTask writes (index.ts:65-67, *)
-(* 162); <<t, n>> is the member RETRY-n:handler:info a failed attempt      *)
-(* writes (index.ts:281-287).                                             *)
+(* <<t, 0>> is the member handler:info that addTask writes (index.ts:74-76, *)
+(* 171-178); <<t, n>> is the member RETRY-n:handler:info a failed      *)
+(* attempt writes (index.ts:297-303).                                     *)
 Members == Tasks \X (0..MaxRetries)
 
 (* A schedule is a member and the score one write gave it. Every write in *)
@@ -54,8 +54,8 @@ VARIABLES
   zset,      \* SchedulerUtil.Tasks: each queued member and its score
   cops,      \* commands the app process sent and Redis has not applied yet
   inbox,     \* "update" messages a listener's subscriber got and has not handled yet
-  locked,    \* each listener's locked flag (index.ts:201)
-  timer,     \* the tick each listener's armed timer fires at, or NoTimer (index.ts:203)
+  locked,    \* each listener's locked flag (index.ts:217)
+  timer,     \* the tick each listener's armed timer fires at, or NoTimer (index.ts:219)
   fifo,      \* each listener's commands on its Redis connection, in the order sent
   busy,      \* each listener's runTasks calls waiting on a task handler
   addState,  \* per task: "no", "sent" (zadd in flight) or "done" (addTask resolved)
@@ -77,11 +77,11 @@ vars == <<now, zset, cops, inbox, locked, timer, fifo, busy, addState,
 Cont(k, m, s, rest) == [k |-> k, m |-> m, s |-> s, rest |-> rest]
 
 (* updateTimer() passed `if (locked)` and sent ZRANGE key 0 0            *)
-(* (index.ts:212-217).                                                    *)
+(* (index.ts:228-233).                                                    *)
 ZrangeSent == Cont("zrange", NoMember, 0, {})
 
 (* runTasks() set locked and sent the take script with Date.now()        *)
-(* (index.ts:255-260, 269, 242).                                         *)
+(* (index.ts:271-276, 285, 258).                                         *)
 TakeSent(at) == Cont("take", NoMember, at, {})
 
 Kinds == {"zrange", "take", "zrem", "retry", "handler"}
@@ -125,6 +125,17 @@ ZRem(z, ms) == [x \in DOMAIN z \ ms |-> z[x]]
 Min(a, b) == IF a <= b THEN a ELSE b
 RemoveAt(s, i) == SubSeq(s, 1, i - 1) \o SubSeq(s, i + 1, Len(s))
 
+(* AddTaskScript answers 1 when m, written at score s, comes first in  *)
+(* the queue or the first member is already due (index.ts:65-72). Redis  *)
+(* orders equal scores by member name, which the model does not track,   *)
+(* so a tie allows both answers.                                         *)
+PublishAfterWrite(z, m, s) ==
+  LET others == DOMAIN z \ {m} IN
+  IF s <= now \/ \E x \in others : z[x] <= now THEN {TRUE}
+  ELSE IF \A x \in others : s < z[x] THEN {TRUE}
+  ELSE IF \E x \in others : z[x] < s THEN {FALSE}
+  ELSE BOOLEAN
+
 (* ZRANGE key 0 0: the member with the lowest score. *)
 First(z) == CHOOSE m \in DOMAIN z : \A x \in DOMAIN z : z[m] <= z[x]
 
@@ -141,7 +152,7 @@ Init ==
   /\ inbox = [l \in Listeners |-> 0]
   /\ locked = [l \in Listeners |-> FALSE]
   /\ timer = [l \in Listeners |-> NoTimer]
-  /\ fifo = [l \in Listeners |-> <<ZrangeSent>>]                 \* index.ts:101
+  /\ fifo = [l \in Listeners |-> <<ZrangeSent>>]                 \* index.ts:110
   /\ busy = [l \in Listeners |-> <<>>]
   /\ removed = {}
   /\ cancelled = {}

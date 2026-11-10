@@ -5,18 +5,18 @@
 EXTENDS SchedulerState
 
 (* After a batch member settles, runTasks hands the next one to its       *)
-(* handler (index.ts:270-274), or clears locked and calls updateTimer,    *)
-(* which sends ZRANGE (index.ts:261-264, 212-217). The handler's own work *)
+(* handler (index.ts:286-290), or clears locked and calls updateTimer,    *)
+(* which sends ZRANGE (index.ts:277-280, 228-233). The handler's own work *)
 (* is the busy step that follows.                                         *)
 NextMember(l, base, rest, queue) ==
   IF rest = {}
-  THEN /\ locked' = [locked EXCEPT ![l] = FALSE]                 \* index.ts:262
-       /\ fifo' = [fifo EXCEPT ![l] = Append(queue, ZrangeSent)] \* index.ts:264
+  THEN /\ locked' = [locked EXCEPT ![l] = FALSE]                 \* index.ts:278
+       /\ fifo' = [fifo EXCEPT ![l] = Append(queue, ZrangeSent)] \* index.ts:280
        /\ busy' = [busy EXCEPT ![l] = base]
        /\ UNCHANGED attempts
   ELSE LET p == NextOf(rest) IN
        /\ busy' = [busy EXCEPT ![l] = Append(base,
-                     Cont("handler", p[1], p[2], rest \ {p}))]  \* index.ts:273-274
+                     Cont("handler", p[1], p[2], rest \ {p}))]  \* index.ts:289-290
        /\ fifo' = [fifo EXCEPT ![l] = queue]
        /\ attempts' = [attempts EXCEPT ![p[1][1]] = @ + 1]
        /\ UNCHANGED locked
@@ -26,8 +26,8 @@ NextMember(l, base, rest, queue) ==
 (* What a step of the app leaves alone, apart from what it names.         *)
 AppKeeps == <<now, inbox, locked, timer, fifo, busy, takes, attempts, outcome>>
 
-(* addTask: the handler is registered (index.ts:157), zadd is sent       *)
-(* (index.ts:161-162).                                                    *)
+(* addTask: the handler is registered (index.ts:166), AddTaskScript is   *)
+(* sent (index.ts:170-178).                                              *)
 AddTaskCall(t) ==
   /\ addState[t] = "no"
   /\ addState' = [addState EXCEPT ![t] = "sent"]
@@ -35,19 +35,22 @@ AddTaskCall(t) ==
   /\ UNCHANGED <<zset, removed, cancelled, rescheduled, written, retired>>
   /\ UNCHANGED AppKeeps
 
-(* Redis applies the zadd; addTask sends the publish, since the app      *)
-(* process runs no batch and its locked is false (index.ts:163-164).      *)
+(* Redis runs AddTaskScript; addTask sends the publish when the member   *)
+(* comes first or the first member is due, since the app process runs no *)
+(* batch and its locked is false (index.ts:171-181).                     *)
 AddTaskZadd(t) ==
   /\ [op |-> "zadd", t |-> t] \in cops
   /\ Write(<<t, 0>>, t)
   /\ addState' = [addState EXCEPT ![t] = "done"]
-  /\ cops' = (cops \ {[op |-> "zadd", t |-> t]}) \cup {[op |-> "publish", t |-> t]}
+  /\ \E first \in PublishAfterWrite(zset, <<t, 0>>, t) :
+       cops' = (cops \ {[op |-> "zadd", t |-> t]})
+                 \cup (IF first THEN {[op |-> "publish", t |-> t]} ELSE {})
   /\ UNCHANGED <<removed, cancelled, rescheduled>>
   /\ UNCHANGED AppKeeps
 
 (* The app reschedules: addTask again with the same handler and info,    *)
 (* due one tick later, so the zadd moves the member's score              *)
-(* (index.ts:157-162).                                                    *)
+(* (index.ts:166-178).                                                    *)
 RescheduleCall(t) ==
   /\ t \in Reschedulable \ rescheduled
   /\ addState[t] = "done"
@@ -57,16 +60,19 @@ RescheduleCall(t) ==
   /\ UNCHANGED AppKeeps
 
 (* Redis applies the reschedule's zadd, which stores the member again if *)
-(* a batch already took it; addTask sends the publish (index.ts:162-164). *)
+(* a batch already took it; addTask sends the publish when the member   *)
+(* comes first or the first member is due (index.ts:171-181).            *)
 RescheduleZadd(t) ==
   /\ [op |-> "rezadd", t |-> t] \in cops
   /\ Write(<<t, 0>>, t + 1)
-  /\ cops' = (cops \ {[op |-> "rezadd", t |-> t]}) \cup {[op |-> "republish", t |-> t]}
+  /\ \E first \in PublishAfterWrite(zset, <<t, 0>>, t + 1) :
+       cops' = (cops \ {[op |-> "rezadd", t |-> t]})
+                 \cup (IF first THEN {[op |-> "republish", t |-> t]} ELSE {})
   /\ UNCHANGED <<addState, removed, cancelled, rescheduled>>
   /\ UNCHANGED AppKeeps
 
 (* Redis applies a publish: every subscribed listener gets "update"      *)
-(* (index.ts:91).                                                         *)
+(* (index.ts:100).                                                         *)
 Publish(t) ==
   \E op \in {"publish", "republish"} :
     /\ [op |-> op, t |-> t] \in cops
@@ -75,7 +81,7 @@ Publish(t) ==
     /\ UNCHANGED <<now, zset, locked, timer, fifo, busy, addState, removed,
                    cancelled, rescheduled, written, retired, takes, attempts, outcome>>
 
-(* removeTask sends zrem (index.ts:196-197).                              *)
+(* removeTask sends zrem (index.ts:212-213).                              *)
 RemoveTaskCall(t) ==
   /\ t \in Removable \ removed
   /\ addState[t] = "done"
@@ -85,7 +91,7 @@ RemoveTaskCall(t) ==
   /\ UNCHANGED AppKeeps
 
 (* zrem deletes the original member only, never a RETRY- member          *)
-(* (index.ts:197, 65-67).                                                 *)
+(* (index.ts:213, 74-76).                                                 *)
 RemoveTaskZrem(t) ==
   /\ [op |-> "zrem", t |-> t] \in cops
   /\ cops' = cops \ {[op |-> "zrem", t |-> t]}
@@ -103,7 +109,7 @@ RemoveTaskZrem(t) ==
 ListenerKeeps == <<now, cops, addState, removed, cancelled, rescheduled>>
 
 (* The subscriber's "message" handler calls updateTimer, which returns at *)
-(* once while locked and sends ZRANGE otherwise (index.ts:92-98, 212-217). *)
+(* once while locked and sends ZRANGE otherwise (index.ts:101-107, 228-233). *)
 NotifyUpdate(l) ==
   /\ inbox[l] > 0
   /\ inbox' = [inbox EXCEPT ![l] = @ - 1]
@@ -113,36 +119,36 @@ NotifyUpdate(l) ==
   /\ UNCHANGED ListenerKeeps
 
 (* The armed timer calls runTasks, which returns at once while locked,   *)
-(* and otherwise sets locked and sends the take (index.ts:228-229,        *)
-(* 254-260, 269).                                                         *)
+(* and otherwise sets locked and sends the take (index.ts:244-245,        *)
+(* 270-276, 285).                                                         *)
 TimerFires(l) ==
   /\ timer[l] # NoTimer
   /\ timer[l] <= now
   /\ timer' = [timer EXCEPT ![l] = NoTimer]
-  /\ IF locked[l]                                                 \* index.ts:255-257
+  /\ IF locked[l]                                                 \* index.ts:271-273
      THEN UNCHANGED <<locked, fifo>>
-     ELSE /\ locked' = [locked EXCEPT ![l] = TRUE]                \* index.ts:258
+     ELSE /\ locked' = [locked EXCEPT ![l] = TRUE]                \* index.ts:274
           /\ fifo' = [fifo EXCEPT ![l] = Append(@, TakeSent(now))]
   /\ UNCHANGED <<zset, inbox, busy, written, retired, takes, attempts, outcome>>
   /\ UNCHANGED ListenerKeeps
 
 (* ZRANGE WITHSCORES answers with the first member and its score in one  *)
-(* reply (index.ts:217). No member ends updateTimer with no timer armed   *)
-(* (index.ts:218-220). A past score calls runTasks now, leaving any armed *)
-(* timer armed, and runTasks returns at once while locked (index.ts:222- *)
-(* 223, 255-258). A later one replaces the armed timer (index.ts:225-231). *)
+(* reply (index.ts:233). No member ends updateTimer with no timer armed   *)
+(* (index.ts:234-236). A past score calls runTasks now, leaving any armed *)
+(* timer armed, and runTasks returns at once while locked (index.ts:238- *)
+(* 239, 271-273). A later one replaces the armed timer (index.ts:241-247). *)
 ZrangeReply(l) ==
   /\ fifo[l] # <<>>
   /\ Head(fifo[l]).k = "zrange"
   /\ IF DOMAIN zset = {}
      THEN /\ fifo' = [fifo EXCEPT ![l] = Tail(@)]
           /\ UNCHANGED <<locked, timer>>
-     ELSE IF zset[First(zset)] < now /\ locked[l]                  \* index.ts:255-257
+     ELSE IF zset[First(zset)] < now /\ locked[l]                  \* index.ts:271-273
      THEN /\ fifo' = [fifo EXCEPT ![l] = Tail(@)]
           /\ UNCHANGED <<locked, timer>>
      ELSE IF zset[First(zset)] < now
      THEN /\ fifo' = [fifo EXCEPT ![l] = Append(Tail(@), TakeSent(now))]
-          /\ locked' = [locked EXCEPT ![l] = TRUE]                \* index.ts:258
+          /\ locked' = [locked EXCEPT ![l] = TRUE]                \* index.ts:274
           /\ UNCHANGED timer
      ELSE /\ fifo' = [fifo EXCEPT ![l] = Tail(@)]
           /\ timer' = [timer EXCEPT ![l] = Min(zset[First(zset)], now + MaxTimerDelay)]
@@ -152,7 +158,7 @@ ZrangeReply(l) ==
 
 (* The take answers. With TakeScript, Redis removed and returned every   *)
 (* member scored at or before the Date.now() it was sent with, in one    *)
-(* step (index.ts:235-244). Without it, as before #26, ZRANGEBYSCORE      *)
+(* step (index.ts:251-260). Without it, as before #26, ZRANGEBYSCORE      *)
 (* only reads them; an empty read ends the batch, any other sends ZREM of *)
 (* the members it read (a8d9d8c^ index.ts:250-252).                       *)
 TakeReply(l) ==
@@ -182,7 +188,7 @@ ZremReply(l) ==
   /\ UNCHANGED <<inbox, timer, written, retired, outcome>>
   /\ UNCHANGED ListenerKeeps
 
-(* The retry zadd answers (index.ts:281-287); the loop moves on.         *)
+(* The retry zadd answers (index.ts:297-303); the loop moves on.         *)
 RetryZaddReply(l) ==
   /\ fifo[l] # <<>>
   /\ Head(fifo[l]).k = "retry"
@@ -192,7 +198,7 @@ RetryZaddReply(l) ==
   /\ UNCHANGED <<inbox, timer, takes, outcome>>
   /\ UNCHANGED ListenerKeeps
 
-(* A handler returns (index.ts:274).                                     *)
+(* A handler returns (index.ts:290).                                     *)
 HandlerReturns(l) ==
   \E i \in 1..Len(busy[l]) :
     LET c == busy[l][i] IN
@@ -201,14 +207,14 @@ HandlerReturns(l) ==
     /\ UNCHANGED <<zset, inbox, timer, written, retired, takes>>
     /\ UNCHANGED ListenerKeeps
 
-(* A handler throws (index.ts:276-289): below MaxRetries the task is     *)
+(* A handler throws (index.ts:292-305): below MaxRetries the task is     *)
 (* queued again as RETRY-n+1 RetryDelay later, else it is dropped.       *)
 HandlerThrows(l) ==
   \E i \in 1..Len(busy[l]) :
     LET c == busy[l][i]
         n == c.m[2]
     IN
-    IF n < MaxRetries                                             \* index.ts:279-280
+    IF n < MaxRetries                                             \* index.ts:295-296
     THEN /\ busy' = [busy EXCEPT ![l] = RemoveAt(@, i)]
          /\ fifo' = [fifo EXCEPT ![l] = Append(@,
                Cont("retry", <<c.m[1], n + 1>>, now + RetryDelay, c.rest))]
@@ -275,13 +281,13 @@ AttemptsBounded == \A t \in Tasks : attempts[t] <= (MaxRetries + 1) * Runs(t)
 
 (* A task is given up only after its handler ran MaxRetries + 1 times:  *)
 (* runTasks "includes automatic retry logic for failed tasks"            *)
-(* (index.ts:249). With AttemptsBounded, a task never rescheduled is     *)
+(* (index.ts:265). With AttemptsBounded, a task never rescheduled is     *)
 (* given up after exactly MaxRetries + 1 runs.                           *)
 RetriedBeforeGivingUp ==
   \A t \in Tasks : outcome[t] = "exhausted" => attempts[t] >= MaxRetries + 1
 
 (* A listener runs one task handler at a time: locked exists "to prevent *)
-(* concurrent task execution" (index.ts:200-201, 255-257).               *)
+(* concurrent task execution" (index.ts:216-217, 271-273).               *)
 NoOverlapOnInstance == \A l \in Listeners : Len(busy[l]) <= 1
 
 (* Nothing is left queued, and every added task that removeTask did not *)

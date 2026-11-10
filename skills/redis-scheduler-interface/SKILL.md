@@ -12,8 +12,9 @@ Distributed task scheduler on top of Redis. Tasks live in one sorted set
 due tasks with one Lua script that reads and removes them in a single step, so
 each due entry goes to exactly one listener, and several listeners can share
 the queue. The `SchedulerUtil` pub/sub channel only carries an `update`
-message that tells listeners to re-arm their timers; it does not decide who
-runs a task.
+message that tells listeners to re-arm their timers; `addTask` sends it only
+when the new task becomes the first in the queue or the first task is past due,
+and it does not decide who runs a task.
 
 Mental model: this is a consumer-side utility, not a proxied service. All
 exported functions run in your own module. Redis access goes through

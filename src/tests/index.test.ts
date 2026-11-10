@@ -47,6 +47,47 @@ describe("Redis Scheduler - addTask", () => {
 
     await cleanupRedis();
   });
+  it("should publish an update only when the task becomes the first in the queue", async () => {
+    await cleanupRedis();
+    setHandler("test-publish", () => {});
+    const subscriber = (await GetClient()).duplicate({ lazyConnect: true });
+    await subscriber.connect();
+    await subscriber.subscribe("SchedulerUtil");
+    const messages = new Array<string>();
+    subscriber.on("message", (_channel: string, message: string) => {
+      messages.push(message);
+    });
+
+    try {
+      await addTask("test-publish", Date.now() + 60000, "first");
+      await addTask("test-publish", Date.now() + 120000, "later");
+      await addTask("test-publish", Date.now() + 30000, "earlier");
+      await delay(50);
+      expect(messages).to.deep.equal(["update", "update"]);
+    } finally {
+      await subscriber.quit();
+    }
+
+    await cleanupRedis();
+  });
+  it("should publish an update for a later task while the first task is overdue", async () => {
+    await cleanupRedis();
+    const executed = new Promise<string>((resolve) => {
+      setHandler("test-overdue", resolve);
+    });
+    await enableListener();
+
+    try {
+      const client = await GetClient();
+      await client.zadd(RedisKey, Date.now() - 1000, "test-overdue:stalled");
+      await addTask("test-overdue", Date.now() + 60000, "later");
+      expect(await executed).to.equal("stalled");
+    } finally {
+      await disableListener();
+    }
+
+    await cleanupRedis();
+  });
   it("should throw for unknown handler", async () => {
     expect(
       await rejectionMessage(
