@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import { GetClient } from "@antelopejs/interface-redis";
+import type { Callback } from "ioredis";
 import {
   addTask,
   disableListener,
@@ -365,27 +366,26 @@ describe("Redis Scheduler - timer", () => {
 
     const zrange = client.zrange.bind(client);
     let removed = false;
-    Object.assign(client, {
-      zrange: async (
-        key: string,
-        start: number,
-        stop: number,
-        withScores?: "WITHSCORES",
-      ) => {
-        const reply = withScores
-          ? await zrange(key, start, stop, withScores)
-          : await zrange(key, start, stop);
-        if (!removed && key === RedisKey) {
-          removed = true;
-          await removeTask("test-remove-race", "first");
-        }
-        return reply;
-      },
-    });
+    client.zrange = async (
+      key: string,
+      start: number | string,
+      stop: number | string,
+      withScores?: string | Callback<string[]>,
+    ) => {
+      if (withScores !== "WITHSCORES") {
+        throw new Error("the zrange stub serves only WITHSCORES reads");
+      }
+      const reply = await zrange(key, start, stop, withScores);
+      if (!removed && key === RedisKey) {
+        removed = true;
+        await removeTask("test-remove-race", "first");
+      }
+      return reply;
+    };
     try {
       await updateTimer();
     } finally {
-      Object.assign(client, { zrange });
+      client.zrange = zrange;
     }
 
     expect(removed).to.equal(true);
