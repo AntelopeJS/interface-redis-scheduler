@@ -62,6 +62,15 @@ export function setHandler(handlerName: string, handler: HandlerType) {
 /** Redis subscriber client for receiving task updates */
 let subscriber: Redis;
 
+const AddTaskScript = `
+redis.call("ZADD", KEYS[1], ARGV[1], ARGV[2])
+local first = redis.call("ZRANGE", KEYS[1], 0, 0, "WITHSCORES")
+if first[1] == ARGV[2] or tonumber(first[2]) <= tonumber(ARGV[3]) then
+  return 1
+end
+return 0
+`;
+
 function createTaskMember(handlerName: string, taskInfo: string): string {
   return `${handlerName}:${taskInfo}`;
 }
@@ -159,8 +168,15 @@ export async function addTask(
   }
 
   const client = await GetClient();
-  await client.zadd(RedisKey, dueTime, createTaskMember(handlerName, taskInfo));
-  if (!locked) {
+  const firstTaskChangedOrDue = await client.eval(
+    AddTaskScript,
+    1,
+    RedisKey,
+    dueTime,
+    createTaskMember(handlerName, taskInfo),
+    Date.now(),
+  );
+  if (firstTaskChangedOrDue === 1 && !locked) {
     void client.publish(SchedulerChannel, SchedulerUpdateMessage);
   }
 }
