@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.0.13
+
+[compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.12...v0.0.13)
+
+### 📖 Documentation
+
+- **readme:** Adopt the AntelopeJS framework README style ([#68](https://github.com/AntelopeJS/interface-redis-scheduler/pull/68))
+
+### 📦 Build
+
+- **deps:** Move to tooling-configs 0.7.1 and cap @antelopejs ranges below the next minor ([#70](https://github.com/AntelopeJS/interface-redis-scheduler/pull/70))
+- Move to @antelopejs/tooling-configs 0.8 and the three-tier CI ([#71](https://github.com/AntelopeJS/interface-redis-scheduler/pull/71))
+
+### 🤖 CI
+
+- Run the check jobs on Windows beside Linux ([#69](https://github.com/AntelopeJS/interface-redis-scheduler/pull/69))
+
+#### ⚠️ Breaking Changes
+
+- **deps:** Move to tooling-configs 0.7.1 and cap @antelopejs ranges below the next minor ([#70](https://github.com/AntelopeJS/interface-redis-scheduler/pull/70))
+
+### ❤️ Contributors
+
+- Antony Rizzitelli
+
 ## v0.0.12
 
 [compare changes](https://github.com/AntelopeJS/interface-redis-scheduler/compare/v0.0.11...v0.0.12)
