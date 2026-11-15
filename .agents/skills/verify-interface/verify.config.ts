@@ -309,10 +309,7 @@ const config: VerifyConfig = {
       covers: ["src/index.ts"],
       files: [".agents/skills/formal-scheduler-delivery/**"],
       command: ["node", ".agents/skills/formal-scheduler-delivery/check.mjs", "--full"],
-      baseCommand: ["node", ".agents/skills/formal-scheduler-delivery/check.mjs"],
       violation: /^(?:finding|BROKEN|CHANGED|HOLDS) +(\w+)/gm,
-      passing: /(?<=^holds +(?:\w+, )*)(\w+)(?=,| \()/gm,
-      behaviour: { kind: "emit" },
     },
   ],
 };
