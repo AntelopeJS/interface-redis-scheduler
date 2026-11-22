@@ -26,8 +26,6 @@ jobs:
       affected-tests: true
     permissions:
       contents: read
-    secrets:
-      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
 
   formal-scheduler-delivery:
     runs-on: ubuntu-latest
