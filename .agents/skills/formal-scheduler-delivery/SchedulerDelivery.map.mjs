@@ -1,7 +1,3 @@
-/**
- * Reader's view of SchedulerDelivery.tla for /statechart: one region for the
- * queue in Redis, one per listener and one for the app.
- */
 
 /**
  * A listener's continuation: `k` names what it waits on, and `m` is the
@@ -119,4 +115,8 @@ export function step(action, from, to) {
   return action === "ZrangeReply" ? scoreStep(from, to) : (STEPS.get(action) ?? null);
 }
 
+/**
+ * Reader's view of SchedulerDelivery.tla for /statechart: one region for the
+ * queue in Redis, one per listener and one for the app.
+ */
 export const title = "Task delivery of interface-redis-scheduler";

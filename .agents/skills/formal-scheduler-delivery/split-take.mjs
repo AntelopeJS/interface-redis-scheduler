@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { checkSpec } from "@antelopejs/tooling-configs/formal";
+
 /**
  * Model-checks SplitTake.cfg: the Claim bounds with the take runTasks used
  * before #26, ZRANGEBYSCORE then ZREM of the members it read
@@ -8,13 +12,11 @@
  * script and prefixes its lines, so a reader of check.mjs output never takes
  * these expected breaks for findings about src/index.ts.
  */
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { checkSpec } from "@antelopejs/tooling-configs/formal";
+const findings = { HandOffOnce: 10, NoDroppedTask: 8, AttemptsBounded: 10 };
 
 await checkSpec({
   dir: path.dirname(fileURLToPath(import.meta.url)),
   spec: "SchedulerDelivery",
   config: "SplitTake",
-  findings: { HandOffOnce: 10, NoDroppedTask: 8, AttemptsBounded: 10 },
+  findings,
 });
