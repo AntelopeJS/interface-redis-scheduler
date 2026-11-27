@@ -10,13 +10,13 @@ importers:
     dependencies:
       '@antelopejs/interface-core':
         specifier: '>=0.0.6 <1.0.0'
-        version: 0.5.3
+        version: 0.5.4
       '@antelopejs/interface-redis':
         specifier: '>=0.0.6 <1.0.0'
-        version: 0.0.11(@antelopejs/interface-core@0.5.3)
+        version: 0.0.11(@antelopejs/interface-core@0.5.4)
       '@antelopejs/interface-redis-scheduler':
         specifier: '>=0.0.6 <1.0.0'
-        version: 0.0.13(@antelopejs/interface-core@0.5.3)(@antelopejs/interface-redis@0.0.11(@antelopejs/interface-core@0.5.3))
+        version: 0.0.13(@antelopejs/interface-core@0.5.4)(@antelopejs/interface-redis@0.0.11(@antelopejs/interface-core@0.5.4))
       ioredis:
         specifier: ^5.10.1
         version: 5.11.1
@@ -57,8 +57,8 @@ importers:
 
 packages:
 
-  '@antelopejs/interface-core@0.5.3':
-    resolution: {integrity: sha512-HvSu+n4tAdiHyTcj2hApmFPWL3M/qfS6x5/YUeuxCe7JQptpyjkc5O5MCaZkv91bo7nGJXtnWbIEiER+aJKHsA==}
+  '@antelopejs/interface-core@0.5.4':
+    resolution: {integrity: sha512-5IzF8eGvXugI5KNHj2q+ux3J5AE09Sagul4Sl1k2FFRlfm7WSRE1uzmjL8CT2cqJvWExqW6SGX17InOddI/t/g==}
 
   '@antelopejs/interface-redis-scheduler@0.0.13':
     resolution: {integrity: sha512-hFUsEr/DxglxwUQPVfOpIKVx21uzlc3unYDTw8t3SJCy9O4m1NUEMN9L3Wd2PcCAINJlzAUlU/9wKsX648ziwQ==}
@@ -285,8 +285,8 @@ packages:
     resolution: {integrity: sha512-H52ocs+dXsxmLtMPqabXz0p+mNWfe5RacpUHq8sB6mJLiMPU6PF/7O0Bl/U8a8WrV1NzWNYpXwZW0zo0BeoT2A==}
     engines: {node: '>= 20'}
 
-  '@octokit/graphql@9.0.5':
-    resolution: {integrity: sha512-bt/hm03LeU6Vy7FwTrkkC9p3XGT/lBwClglMqxBSe5/q0E5CdJTXeAqEI0vlw89/LF/G6tryTIH8HirZ3prMVg==}
+  '@octokit/graphql@9.0.6':
+    resolution: {integrity: sha512-NZuqjuSGn8DEMq4fq/QWhg6DoqGdNOkKPi5R1kZ8Y3k+MqeRopYRSa3hccdHhGP4ISfV8BHv9+YURO4TEkbRWQ==}
     engines: {node: '>= 20'}
 
   '@octokit/openapi-types@27.0.0':
@@ -1245,21 +1245,21 @@ packages:
 
 snapshots:
 
-  '@antelopejs/interface-core@0.5.3':
+  '@antelopejs/interface-core@0.5.4':
     dependencies:
       reflect-metadata: 0.2.2
 
-  '@antelopejs/interface-redis-scheduler@0.0.13(@antelopejs/interface-core@0.5.3)(@antelopejs/interface-redis@0.0.11(@antelopejs/interface-core@0.5.3))':
+  '@antelopejs/interface-redis-scheduler@0.0.13(@antelopejs/interface-core@0.5.4)(@antelopejs/interface-redis@0.0.11(@antelopejs/interface-core@0.5.4))':
     dependencies:
-      '@antelopejs/interface-core': 0.5.3
-      '@antelopejs/interface-redis': 0.0.11(@antelopejs/interface-core@0.5.3)
+      '@antelopejs/interface-core': 0.5.4
+      '@antelopejs/interface-redis': 0.0.11(@antelopejs/interface-core@0.5.4)
       ioredis: 5.11.1
     transitivePeerDependencies:
       - supports-color
 
-  '@antelopejs/interface-redis@0.0.11(@antelopejs/interface-core@0.5.3)':
+  '@antelopejs/interface-redis@0.0.11(@antelopejs/interface-core@0.5.4)':
     dependencies:
-      '@antelopejs/interface-core': 0.5.3
+      '@antelopejs/interface-core': 0.5.4
       ioredis: 5.11.1
     transitivePeerDependencies:
       - supports-color
@@ -1441,7 +1441,7 @@ snapshots:
   '@octokit/core@7.0.8':
     dependencies:
       '@octokit/auth-token': 6.0.0
-      '@octokit/graphql': 9.0.5
+      '@octokit/graphql': 9.0.6
       '@octokit/request': 10.0.16
       '@octokit/request-error': 7.1.2
       '@octokit/types': 18.0.0
@@ -1453,7 +1453,7 @@ snapshots:
       '@octokit/types': 18.0.0
       universal-user-agent: 7.0.3
 
-  '@octokit/graphql@9.0.5':
+  '@octokit/graphql@9.0.6':
     dependencies:
       '@octokit/request': 10.0.16
       '@octokit/types': 18.0.0
