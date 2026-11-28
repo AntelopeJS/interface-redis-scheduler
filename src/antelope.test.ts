@@ -8,7 +8,7 @@ export default defineConfig({
       source: {
         type: "package",
         package: "@antelopejs/redis",
-        version: "1.0.3",
+        version: "1.1.3",
       },
       config: { useMock: true },
     },
